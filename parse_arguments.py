@@ -1,5 +1,4 @@
 import configparser
-import os
 from collections import namedtuple
 
 PATH = 'parameters.ini'
