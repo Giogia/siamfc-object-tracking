@@ -1,8 +1,8 @@
-import json
+import configparser
 import os
 from collections import namedtuple
 
-PATH = 'parameters'
+PATH = 'parameters.ini'
 
 
 def parse_arguments():
@@ -11,31 +11,36 @@ def parse_arguments():
 
     USAGE
     parameters = parse_arguments()
-    value  = parameters.filename.field
+    value  = parameters.section.field
 
     EXAMPLE
     parameters = parse_arguments()
-    scale_num = parameters.hyperparams.scale_num
+    scale_num = parameters.hyperparameters.scale_num
 
     """
 
+    config = configparser.ConfigParser()
+
+    config.read(PATH)
+
     parameters = {}
-    for file in os.listdir(PATH):
 
-        if file.endswith('.json'):
-            with open(os.path.join(PATH, file)) as json_file:
+    for section in config.sections():
 
-                file_name = os.path.splitext(file)[0]
-                values = json.load(json_file)
-                values = namedtuple(file_name, values.keys())(**values)
+        values = dict(config.items(section))
+        values = namedtuple(section, values.keys())(**values)
 
-                parameters[file_name] = values
+        parameters[section] = values
 
     return namedtuple('parameters', parameters.keys())(**parameters)
 
 
 # Example
-# parameters = parse_arguments()
-# print(parameters)
-# print(parameters.hyperparams)
-# print(parameters.hyperparams.scale_num)
+'''
+parameters = parse_arguments()
+print(parameters)
+print('\n')
+print(parameters.hyperparameters)
+print('\n')
+print(parameters.hyperparameters.scale_num)
+'''
