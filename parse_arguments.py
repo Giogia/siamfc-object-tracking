@@ -27,10 +27,10 @@ def parse_arguments():
 
     for section in config.sections():
 
-        values = dict(config.items(section))
-        values = namedtuple(section, values.keys())(**values)
+        fields = dict(config.items(section))
+        fields = namedtuple(section, fields.keys())(**fields)
 
-        parameters[section] = values
+        parameters[section] = fields
 
     return namedtuple('parameters', parameters.keys())(**parameters)
 
