@@ -146,8 +146,15 @@ tmtagsHistory
 *.sublime-workspace
 .bundle
 
-# Videos
+# Videos and Images
 ######################
 *.mp4
 *.avi
+*.jpg
 
+# Groundtruth data
+######################
+*.txt
+*.label
+*.value
+*.tmp
