@@ -56,10 +56,10 @@ def main():
         mean_precision_auc = np.sum(precisions_auc * lengths) / tot_frames
         mean_iou = np.sum(ious * lengths) / tot_frames
         mean_speed = np.sum(speed * lengths) / tot_frames
-        print('-- Overall stats (averaged per frame) on {} videos ({} frames) -- Precision ({} px): {.2f} '
-              '-- Precisions AUC: {.2f} -- IOU: {.2f} -- Speed: {.2f} --'
-              .format(nv, tot_frames, evaluation.dist_treshold, mean_precision, mean_precision_auc, mean_iou,
-                      mean_speed))
+        print('-- Overall stats (averaged per frame) on {} videos ({} frames) -- Precision ({} px): {} '
+              '-- Precisions AUC: {} -- IOU: {} -- Speed: {} --'
+              .format(nv, tot_frames, evaluation.dist_threshold, np.round(mean_precision), np.round(mean_precision_auc),
+                      np.round(mean_iou), np.round(mean_speed)))
 
     else:
         gt, frame_name_list, _, _ = _init_video(env, evaluation, evaluation.video)
@@ -67,8 +67,9 @@ def main():
         b_boxes, speed = tracker(hp, run, design, frame_name_list, pos_x, pos_y, target_w, target_h, final_score_sz,
                                  filename, image, templates_z, scores, evaluation.start_frame)
         _, precision, precision_auc, iou = _compile_results(gt, b_boxes, evaluation.dist_threshold)
-        print('{} -- Precision ({} px): {.2f} -- Precision AUC: {.2f} -- IOU: {.2f} -- Speed: {.2f} --'
-              .format(evaluation.video, evaluation.dist_treshold, precision, precision_auc, iou, speed))
+        print('{} -- Precision ({} px): {} -- Precision AUC: {} -- IOU: {} -- Speed: {} --'
+              .format(evaluation.video, evaluation.dist_threshold, np.round(precision, 2), np.round(precision_auc),
+                      np.round(iou), np.round(speed)))
 
 
 def _compile_results(gt, b_boxes, dist_threshold):
@@ -85,15 +86,15 @@ def _compile_results(gt, b_boxes, dist_threshold):
         new_ious[i] = _compute_iou(b_boxes[i, :], gt4[i, :])
 
     # what's the percentage of frame in which center displacement is inferior to given threshold? (OTB metric)
-    precision = sum(new_distances < dist_threshold) / np.size(new_distances) * 100
+    precision = sum(new_distances < dist_threshold)/np.size(new_distances) * 100
 
     # find above result for many thresholds, then report the AUC
-    thresholds = np.linspace(0, 25, n_thresholds + 1)
+    thresholds = np.linspace(0, 25, n_thresholds+1)
     thresholds = thresholds[-n_thresholds:]
     # reverse it so that higher values of precision goes at the beginning
     thresholds = thresholds[::-1]
     for i in range(n_thresholds):
-        precisions_ths[i] = sum(new_distances < thresholds[i]) / np.size(new_distances)
+        precisions_ths[i] = sum(new_distances < thresholds[i])/np.size(new_distances)
 
     # integrate over the thresholds
     precision_auc = np.trapz(precisions_ths)
