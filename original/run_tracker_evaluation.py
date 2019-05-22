@@ -48,8 +48,9 @@ def main():
                                               image, templates_z, scores, start_frame)
                 lengths[idx], precisions[idx], precisions_auc[idx], ious[idx] = \
                     _compile_results(gt_, b_boxes, evaluation.dist_threshold)
-                print('{} -- {} -- Precision: {.2f} -- Precisions AUC: {.2f} -- IOU: {.2f} -- Speed: {.2f} --'
-                      .format(i, videos_list[i], precisions[idx], precisions_auc[idx], ious[idx], speed[idx]))
+                print('{} -- {} -- Precision: {} -- Precisions AUC: {} -- IOU: {} -- Speed: {} --'
+                      .format(i, videos_list[i], np.round(precisions[idx], 2), np.round(precisions_auc[idx], 2),
+                              np.round(ious[idx], 2), np.round(speed[idx], 2)))
 
         tot_frames = np.sum(lengths)
         mean_precision = np.sum(precisions * lengths) / tot_frames
