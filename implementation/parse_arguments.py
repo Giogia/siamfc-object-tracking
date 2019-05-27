@@ -30,12 +30,4 @@ def parse_arguments():
     return namedtuple('parameters', parameters.keys())(**parameters)
 
 
-# Example
-'''
 parameters = parse_arguments()
-print(parameters)
-print('\n')
-print(parameters.hyperparameters)
-print('\n')
-print(parameters.hyperparameters.scale_num)
-'''
