@@ -17,7 +17,7 @@ def frame_padding(image, bbox_x, bbox_y, window_size):
     max_padding = tf.reduce_max([left_padding, top_padding, right_padding, bottom_padding])
     padding = [[max_padding, max_padding], [max_padding, max_padding], [0, 0]]
 
-    image_mean = tf.reduce_mean(image, axis=(0, 1), name='image_mean') if parameters.general.pad_with_image_mean else 0
+    image_mean = tf.reduce_mean(image, axis=(0, 1), name='image_mean') if parameters.design.pad_with_image_mean else 0
 
     image = image - image_mean
     image = tf.pad(image, padding, mode='CONSTANT')
@@ -54,3 +54,26 @@ def crop_resize(image, padding, bbox_x, bbox_y, window_sizes, network_size):
     images = tf.stack(images)
 
     return images
+
+
+'''
+Test
+
+tf.enable_eager_execution()
+
+image = tf.read_file('prova.jpg')
+image = tf.image.decode_image(image)
+image, padding = frame_padding(image, 112, 112, 100)
+images = crop_resize(image, padding, 112, 112, [25, 50, 100], 200)
+
+i = 0
+for image in images:
+    image = tf.cast(image, tf.uint8)
+    image = tf.image.encode_jpeg(image, quality=100)
+    tf.write_file('result'+str(i)+'.jpg', image)
+    i += 1
+
+'''
+
+
+
