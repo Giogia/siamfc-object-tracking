@@ -66,9 +66,9 @@ def tracker(hp, run, design, frame_name_list, pos_x, pos_y, target_w, target_h, 
             filename: frame_name_list[0]})
         # new_templates_z_ = templates_z_
 
-        print("saving")
+        #print("saving")
         saver.save(sess, 'model')
-        print("saved")
+        #print("saved")
 
         t_start = time.time()
 
@@ -89,6 +89,11 @@ def tracker(hp, run, design, frame_name_list, pos_x, pos_y, target_w, target_h, 
                     templates_z: np.squeeze(templates_z_),
                     filename: frame_name_list[i],
                 }, **run_opts)
+
+            print(tf.GraphKeys.GLOBAL_VARIABLES)
+            print([elem for elem in tf.GraphKeys.TRAINABLE_VARIABLES])
+            print([elem for elem in tf.GraphKeys.LOCAL_VARIABLES])
+
             scores_ = np.squeeze(scores_)
             # penalize change of scale
             scores_[0, :, :] = hp.scale_penalty * scores_[0, :, :]
