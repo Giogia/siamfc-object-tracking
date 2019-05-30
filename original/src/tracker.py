@@ -29,7 +29,9 @@ def tracker(hp, run, design, frame_name_list, pos_x, pos_y, target_w, target_h, 
 
     context = design.context * (target_w + target_h)
     z_sz = np.sqrt(np.prod((target_w + context) * (target_h + context)))
+
     x_sz = float(design.search_sz) / design.exemplar_sz * z_sz
+
     """
     # thresholds to saturate patches shrinking/growing
     min_z = hp.scale_min * z_sz
@@ -44,6 +46,8 @@ def tracker(hp, run, design, frame_name_list, pos_x, pos_y, target_w, target_h, 
     # }
     """
     run_opts = {}
+
+    saver = tf.train.Saver()
 
     # with tf.Session(config=tf.ConfigProto(log_device_placement=True)) as sess:
     with tf.Session() as sess:
@@ -61,6 +65,10 @@ def tracker(hp, run, design, frame_name_list, pos_x, pos_y, target_w, target_h, 
             siam.z_sz_ph: z_sz,
             filename: frame_name_list[0]})
         # new_templates_z_ = templates_z_
+
+        print("saving")
+        saver.save(sess, 'model')
+        print("saved")
 
         t_start = time.time()
 
