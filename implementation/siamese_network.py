@@ -121,9 +121,9 @@ def create_network(tensor_x, tensor_z):
 
 
 def set_convolutional(tensor, window, b, stride, batch_norm_beta, batch_norm_gamma, batch_norm_mm, batch_norm_mv, filter_group=False, batch_norm=True,
-                      activation=True, scope=None, reuse=False):
+                      activation=True, scope="conv", reuse=False):
     # use the input scope or default to "conv"
-    with tf.variable_scope(scope or 'conv', reuse=reuse):
+    with tf.variable_scope(scope, reuse=reuse):
         # sanity check
         window = tf.get_variable("W", window.shape, trainable=False, initializer=tf.constant_initializer(window))
         b = tf.get_variable("b", b.shape, trainable=False, initializer=tf.constant_initializer(b))
