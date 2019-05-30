@@ -72,7 +72,7 @@ def build_tracking_graph():
     return filename, image, network_z, upsampled_scores
 
 
-def create_network(tensor_z, tensor_x):
+def create_network(network_z, network_x):
     for i in range(NUM_LAYERS):
 
         print('> Layer ' + str(i + 1))
@@ -104,18 +104,28 @@ def create_network(tensor_z, tensor_x):
             bn_beta = bn_gamma = bn_moving_mean = bn_moving_variance = []
 
         # Reuse=True for Siamese parameters sharing
-        network_z = create_convolutional(tensor_z, conv_w, conv_b, CONV_STRIDE[i],
+        network_z = create_convolutional(network_z, conv_w, conv_b, CONV_STRIDE[i],
                                          bn_beta, bn_gamma, bn_moving_mean, bn_moving_variance,
                                          filter_group=FILTERGROUP[i], batch_norm=BNORM[i], activation=RELU[i],
                                          scope='conv' + str(i + 1), reuse=True)
 
         # Set up convolutional block with batch normalization and activation
-        network_x = create_convolutional(tensor_x, conv_w, conv_b, CONV_STRIDE[i],
+        network_x = create_convolutional(network_x, conv_w, conv_b, CONV_STRIDE[i],
                                          bn_beta, bn_gamma, bn_moving_mean, bn_moving_variance,
                                          filter_group=FILTERGROUP[i], batch_norm=BNORM[i], activation=RELU[i],
                                          scope='conv' + str(i + 1), reuse=False)
 
-        return network_z, network_x
+        # Add max pool if required
+        if POOL_STRIDE[i] > 0:
+            print('\t\tMAX-POOL: size {} and stride {}'.format(POOL_SIZE, POOL_STRIDE[i]))
+            network_x = tf.nn.max_pool(network_x, [1, POOL_SIZE, POOL_SIZE, 1],
+                                       strides=[1, POOL_STRIDE[i], POOL_STRIDE[i], 1],
+                                       padding='VALID', name='pool' + str(i + 1))
+            network_z = tf.nn.max_pool(network_z, [1, POOL_SIZE, POOL_SIZE, 1],
+                                       strides=[1, POOL_STRIDE[i], POOL_STRIDE[i], 1],
+                                       padding='VALID', name='pool' + str(i + 1))
+
+    return network_z, network_x
 
 
 def create_convolutional(tensor, window, bias, stride, batch_norm_beta, batch_norm_gamma, batch_norm_mm, batch_norm_mv,
