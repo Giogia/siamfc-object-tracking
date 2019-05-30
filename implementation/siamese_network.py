@@ -105,18 +105,19 @@ def create_network(tensor_x, tensor_z):
             bn_beta = bn_gamma = bn_moving_mean = bn_moving_variance = []
 
         # set up conv "block" with bnorm and activation
-        tensor_x = set_convolutional(tensor_x, conv_w, np.swapaxes(conv_b, 0, 1), _conv_stride[i],
+        tensor_x = set_convolutional(tensor_x, conv_w, np.swapaxes(conv_b, 0, 1), CONV_STRIDE[i],
                                      bn_beta, bn_gamma, bn_moving_mean, bn_moving_variance,
-                                     filter_group=_filtergroup_yn[i], batch_norm=_bnorm_yn[i], activation=_relu_yn[i],
+                                     filter_group=FILTERGROUP[i], batch_norm=BNORM[i], activation=RELU[i],
                                      scope='conv' + str(i + 1), reuse=False)
 
         # notice reuse=True for Siamese parameters sharing
-        tensor_z = set_convolutional(tensor_z, conv_w, np.swapaxes(conv_b, 0, 1), _conv_stride[i], bn_beta, bn_gamma,
-                                     bn_moving_mean, bn_moving_variance, filter_group=_filtergroup_yn[i],
-                                     batch_norm=_bnorm_yn[i], activation=_relu_yn[i], scope='conv' + str(i + 1),
+        tensor_z = set_convolutional(tensor_z, conv_w, np.swapaxes(conv_b, 0, 1),CONV_STRIDE[i], bn_beta, bn_gamma,
+                                     bn_moving_mean, bn_moving_variance, filter_group=FILTERGROUP[i],
+                                     batch_norm=BNORM[i], activation=RELU[i], scope='conv' + str(i + 1),
                                      reuse=True)
 
-        return net_z, net_x, params_names_list, params_values_list
+        return  tensor_x, tensor_z
+        #TODO params_names_list, params_values_list
 
 
 def set_convolutional(tensor, window, b, stride, batch_norm_beta, batch_norm_gamma, batch_norm_mm, batch_norm_mv, filter_group=False, batch_norm=True,
