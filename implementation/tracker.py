@@ -13,6 +13,7 @@ from visualization import show_frame
 def tracker(hyperparams, run, design, frame_name_list, pos_x, pos_y, target_w, target_h, final_score_sz, filename, image,
             templates_z, scores, start_frame):
 
+    print("face")
     #TODO capiamo che forma ha frame name list, penso sia una riga
     num_frames = len(frame_name_list)
     # stores tracker's output for evaluation
