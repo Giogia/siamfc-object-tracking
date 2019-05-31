@@ -150,8 +150,7 @@ def _match_templates(net_z, net_x, params_names_list, params_values_list):
     # z, x are [h, w, b, c]
     hz, wz, b, c = tf.unstack(tf.shape(net_z))
     hx, wx, bx, cx = tf.unstack(tf.shape(net_x))
-    # assert b==bx, ('Z and X should have same Batch size')
-    # assert c==cx, ('Z and X should have same Channels number')
+
     net_z = tf.reshape(net_z, (hz, wz, b * c, 1))
     net_x = tf.reshape(net_x, (1, hx, wx, b * c))
     net_final = tf.nn.depthwise_conv2d(net_x, net_z, strides=[1, 1, 1, 1], padding='VALID')
