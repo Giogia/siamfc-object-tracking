@@ -8,9 +8,9 @@ from src.crops import extract_crops_z, extract_crops_x, pad_frame
 
 sys.path.append('../')
 
-pos_x_ph = tf.placeholder(tf.float64)
-pos_y_ph = tf.placeholder(tf.float64)
-z_sz_ph = tf.placeholder(tf.float64)
+pos_x_ph = tf.placeholder(tf.float64, name="pos_x")
+pos_y_ph = tf.placeholder(tf.float64, name="pos_y")
+z_sz_ph = tf.placeholder(tf.float64, name="z_sz")
 x_sz0_ph = tf.placeholder(tf.float64)
 x_sz1_ph = tf.placeholder(tf.float64)
 x_sz2_ph = tf.placeholder(tf.float64)
@@ -72,11 +72,13 @@ def build_tracking_graph(final_score_sz, design, env):
 
 # import pretrained Siamese network from matconvnet
 def _create_siamese(net_path, net_x, net_z):
+
     # read mat file from net_path and start TF Siamese graph from placeholders X and Z
     params_names_list, params_values_list = _import_from_matconvnet(net_path)
 
     # loop through the flag arrays and re-construct network, reading parameters of conv and bnorm layers
     for i in range(_num_layers):
+
         print('> Layer ' + str(i + 1))
         # conv
         conv_w_name = _find_params('conv' + str(i + 1) + 'f', params_names_list)[0]
@@ -85,6 +87,7 @@ def _create_siamese(net_path, net_x, net_z):
         print('\t\tCONV: stride ' + str(_conv_stride[i]) + ', filter-group ' + str(_filtergroup_yn[i]))
         conv_w = params_values_list[params_names_list.index(conv_w_name)]
         conv_b = params_values_list[params_names_list.index(conv_b_name)]
+
         # batchnorm
         if _bnorm_yn[i]:
             bn_beta_name = _find_params('bn' + str(i + 1) + 'b', params_names_list)[0]
@@ -96,6 +99,7 @@ def _create_siamese(net_path, net_x, net_z):
             bn_moments = params_values_list[params_names_list.index(bn_moments_name)]
             bn_moving_mean = bn_moments[:, 0]
             bn_moving_variance = bn_moments[:, 1] ** 2  # saved as std in matconvnet
+
         else:
             bn_beta = bn_gamma = bn_moving_mean = bn_moving_variance = []
 

@@ -43,9 +43,8 @@ def main():
                 frame_name_list_ = frame_name_list[start_frame:]
                 pos_x, pos_y, target_w, target_h = region_to_bbox(gt_[0])
                 idx = i * evaluation.n_subseq + j
-                b_boxes, speed[idx] = tracker(hp, run, design, frame_name_list_, pos_x, pos_y,
-                                              target_w, target_h, final_score_sz, filename,
-                                              image, templates_z, scores, start_frame)
+                b_boxes, speed[idx] = tracker(hp, run, design, frame_name_list, pos_x, pos_y, target_w, target_h, final_score_sz,
+                                 filename, image, templates_z, scores, evaluation.start_frame)
                 lengths[idx], precisions[idx], precisions_auc[idx], ious[idx] = \
                     _compile_results(gt_, b_boxes, evaluation.dist_threshold)
                 print('{} -- {} -- Precision: {} -- Precisions AUC: {} -- IOU: {} -- Speed: {} --'

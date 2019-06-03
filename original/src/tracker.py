@@ -17,6 +17,7 @@ print('Using Tensorflow ' + tf.__version__)
 # read default parameters and override with custom ones
 def tracker(hp, run, design, frame_name_list, pos_x, pos_y, target_w, target_h, final_score_sz, filename, image,
             templates_z, scores, start_frame):
+
     num_frames = np.size(frame_name_list)
     # stores tracker's output for evaluation
     bboxes = np.zeros((num_frames, 4))
@@ -45,7 +46,7 @@ def tracker(hp, run, design, frame_name_list, pos_x, pos_y, target_w, target_h, 
     #     'run_metadata': run_metadata,
     # }
     """
-    run_opts = {}
+    # run_opts = {}
 
     saver = tf.train.Saver()
 
@@ -67,7 +68,7 @@ def tracker(hp, run, design, frame_name_list, pos_x, pos_y, target_w, target_h, 
         # new_templates_z_ = templates_z_
 
         #print("saving")
-        saver.save(sess, 'model')
+        #saver.save(sess, 'model')
         #print("saved")
 
         t_start = time.time()
@@ -88,11 +89,7 @@ def tracker(hp, run, design, frame_name_list, pos_x, pos_y, target_w, target_h, 
                     siam.x_sz2_ph: scaled_search_area[2],
                     templates_z: np.squeeze(templates_z_),
                     filename: frame_name_list[i],
-                }, **run_opts)
-
-            print(tf.GraphKeys.GLOBAL_VARIABLES)
-            print([elem for elem in tf.GraphKeys.TRAINABLE_VARIABLES])
-            print([elem for elem in tf.GraphKeys.LOCAL_VARIABLES])
+                })
 
             scores_ = np.squeeze(scores_)
             # penalize change of scale
@@ -116,6 +113,7 @@ def tracker(hp, run, design, frame_name_list, pos_x, pos_y, target_w, target_h, 
             bboxes[i, :] = pos_x - target_w / 2, pos_y - target_h / 2, target_w, target_h
             # update the target representation with a rolling average
             if hp.z_lr > 0:
+                print('ciao')
                 new_templates_z_ = sess.run([templates_z], feed_dict={
                     siam.pos_x_ph: pos_x,
                     siam.pos_y_ph: pos_y,

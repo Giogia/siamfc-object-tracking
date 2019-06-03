@@ -11,7 +11,7 @@ def show_frame(frame, bbox, fig_n):
     ax.add_patch(r)
     plt.ion()
     plt.show()
-    plt.pause(0.001)
+    #plt.pause(0.001)
     plt.clf()
 
 
@@ -25,7 +25,7 @@ def show_crops(crops, fig_n):
     ax3.imshow(np.uint8(crops[2, :, :, :]))
     plt.ion()
     plt.show()
-    plt.pause(0.001)
+    #plt.pause(0.001)
 
 
 def show_scores(scores, fig_n):
@@ -38,4 +38,4 @@ def show_scores(scores, fig_n):
     ax3.imshow(scores[2, :, :], interpolation='none', cmap='hot')
     plt.ion()
     plt.show()
-    plt.pause(0.001)
+    #plt.pause(0.001)
