@@ -10,8 +10,8 @@ from sperm_src.parse import parameters
 
 
 def tracker(frame_name_list, b_box_x, b_box_y, b_box_width, b_box_height, final_score_size, filename, image,
-            network_z, scores):
-    num_frames = np.size(frame_name_list)
+            network_z, input_scores):
+    num_frames = len(frame_name_list)
     b_boxes = np.zeros((num_frames, 4))
 
     scale_factors = parameters.hyperparameters.scale_step ** np.linspace(
@@ -41,7 +41,7 @@ def tracker(frame_name_list, b_box_x, b_box_y, b_box_width, b_box_height, final_
         # Save first frame position (from ground-truth)
         b_boxes[0, :] = b_box_x - b_box_width / 2, b_box_y - b_box_height / 2, b_box_width, b_box_height
 
-        image, network_z = sess.run([image, network_z], feed_dict={
+        image_, network_z_ = sess.run([image, network_z], feed_dict={
             siamese_network.bbox_x_ph: b_box_x,
             siamese_network.bbox_y_ph: b_box_y,
             siamese_network.window_size_z_ph: window_size_z,
@@ -55,16 +55,15 @@ def tracker(frame_name_list, b_box_x, b_box_y, b_box_width, b_box_height, final_
             scaled_window_size_x = window_size_x * scale_factors
             scaled_b_box_width = b_box_width * scale_factors
             scaled_b_box_height = b_box_height * scale_factors
-            print(frame_name_list[i])
-            image, scores = sess.run(
-                [image, scores],
+            image_, scores = sess.run(
+                [image, input_scores],
                 feed_dict={
                     siamese_network.bbox_x_ph: b_box_x,
                     siamese_network.bbox_y_ph: b_box_y,
                     siamese_network.window_size_x_0_ph: scaled_window_size_x[0],
                     siamese_network.window_size_x_1_ph: scaled_window_size_x[1],
                     siamese_network.window_size_x_2_ph: scaled_window_size_x[2],
-                    network_z: np.squeeze(network_z),
+                    network_z: np.squeeze(network_z_),
                     filename: frame_name_list[i],
                 })
 
@@ -77,17 +76,10 @@ def tracker(frame_name_list, b_box_x, b_box_y, b_box_width, b_box_height, final_
             best_scale = np.argmax(np.amax(scores, axis=(1, 2)))
 
             # Update scaled sizes
-            window_size_x = (
-                                    1 - parameters.hyperparameters.scale_lr) * window_size_x + parameters.hyperparameters.scale_lr * \
-                            scaled_window_size_x[best_scale]
-            b_box_width = (
-                                  1 - parameters.hyperparameters.scale_lr) * b_box_width + parameters.hyperparameters.scale_lr * \
-                          scaled_b_box_width[
-                              best_scale]
-            b_box_height = (
-                                   1 - parameters.hyperparameters.scale_lr) * b_box_height + parameters.hyperparameters.scale_lr * \
-                           scaled_b_box_height[
-                               best_scale]
+            scale_lr = parameters.hyperparameters.scale_lr
+            window_size_x = (1 - scale_lr) * window_size_x + scale_lr * scaled_window_size_x[best_scale]
+            b_box_width = (1 - scale_lr) * b_box_width + scale_lr * scaled_b_box_width[best_scale]
+            b_box_height = (1 - scale_lr) * b_box_height + scale_lr * scaled_b_box_height[best_scale]
 
             # Select response with best scale
             best_score = scores[best_scale, :, :]
@@ -95,8 +87,8 @@ def tracker(frame_name_list, b_box_x, b_box_y, b_box_width, b_box_height, final_
             best_score = best_score / np.sum(best_score)
 
             # Apply displacement penalty
-            best_score = (
-                                 1 - parameters.hyperparameters.window_influence) * best_score + parameters.hyperparameters.window_influence * penalty
+            window_influence = parameters.hyperparameters.window_influence
+            best_score = (1 - window_influence) * best_score + window_influence * penalty
             b_box_x, b_box_y = update_b_box_position(b_box_x, b_box_y, best_score, final_score_size, window_size_x)
 
             # Convert <cx,cy,w,h> to <x,y,w,h> and save output
@@ -108,20 +100,17 @@ def tracker(frame_name_list, b_box_x, b_box_y, b_box_width, b_box_height, final_
                     siamese_network.bbox_x_ph: b_box_x,
                     siamese_network.bbox_y_ph: b_box_y,
                     siamese_network.window_size_z_ph: window_size_z,
-                    image: image
+                    image: image_
                 })
 
-                network_z = (1 - parameters.hyperparameters.z_lr) * np.asarray(
-                    network_z) + parameters.hyperparameters.z_lr * np.asarray(
-                    new_network_z)
+                z_lr = parameters.hyperparameters.z_lr
+                network_z_ = (1 - z_lr) * np.asarray(network_z_) + z_lr * np.asarray(new_network_z)
 
             # Update template patch size
-            window_size_z = (
-                                    1 - parameters.hyperparameters.scale_lr) * window_size_z + parameters.hyperparameters.scale_lr * \
-                            scaled_window_size_z[best_scale]
+            window_size_z = (1 - scale_lr) * window_size_z + scale_lr * scaled_window_size_z[best_scale]
 
             if parameters.run.visualization:
-                show_frame(image, b_boxes[i, :], 1)
+                show_frame(image_, b_boxes[i, :], 1)
 
         time_elapsed = time.time() - time_start
         speed = num_frames / time_elapsed
