@@ -19,15 +19,15 @@ def parse_arguments():
 
     config.read(PATH)
 
-    parameters = {}
+    params = {}
 
     for section in config:
         fields = dict(config.items(section))
         fields = namedtuple(section, fields.keys())(**fields)
 
-        parameters[section] = fields
+        params[section] = fields
 
-    return namedtuple('parameters', parameters.keys())(**parameters)
+    return namedtuple('parameters', params.keys())(**params)
 
 
 parameters = parse_arguments()

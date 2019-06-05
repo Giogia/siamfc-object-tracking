@@ -6,10 +6,7 @@ def region_to_bbox(region, center=True):
     n = len(region)
     assert n == 4 or n == 8, 'Groundtruth region format is invalid, should have 4 or 8 entries.'
 
-    if n == 4:
-        return rectangle(region, center)
-    else:
-        return polygon(region, center)
+    return rectangle(region, center) if n == 4 else polygon(region, center)
 
 
 # Assuming bounding boxes are saved with 0-indexing
@@ -22,8 +19,7 @@ def rectangle(region, center):
 
         return center_x, center_y, width, height
 
-    else:
-        return region
+    return region
 
 
 def polygon(region, center):
@@ -45,5 +41,4 @@ def polygon(region, center):
     if center:
         return center_x, center_y, width, height
 
-    else:
-        return center_x - width / 2, center_y - height / 2, width, height
+    return center_x - width / 2, center_y - height / 2, width, height

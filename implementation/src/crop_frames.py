@@ -1,4 +1,4 @@
-from parse_arguments import parameters
+from src.parse_arguments import parameters
 import tensorflow as tf
 
 

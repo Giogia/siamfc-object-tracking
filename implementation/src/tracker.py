@@ -4,10 +4,10 @@ import matplotlib.pyplot as plt
 import numpy as np
 import time
 
-import siamese_network
+import src.siamese_network
 import cv2
 
-from parse_arguments import parameters
+from src.parse_arguments import parameters
 
 
 def tracker(frame_name_list, b_box_x, b_box_y, b_box_width, b_box_height, final_score_size, filename, image,
