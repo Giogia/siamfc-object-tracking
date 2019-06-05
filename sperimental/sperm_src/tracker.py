@@ -44,8 +44,6 @@ def tracker(frame_name_list, b_box_x, b_box_y, b_box_width, b_box_height, final_
             siamese_network.window_size_z_ph: window_size_z,
             filename: frame_name_list[0]})
 
-        time_start = time.time()
-
         # Get an image from the queue
         for i in range(1, num_frames):
             scaled_window_size_z = window_size_z * scale_factors
@@ -109,14 +107,11 @@ def tracker(frame_name_list, b_box_x, b_box_y, b_box_width, b_box_height, final_
             if parameters.run.visualization:
                 show_frame(image_, b_boxes[i, :])
 
-        time_elapsed = time.time() - time_start
-        speed = num_frames / time_elapsed
-
         # Finish off the filename queue coordinator.
         coordinator.request_stop()
         coordinator.join(threads)
 
-    return b_boxes, speed
+    return b_boxes
 
 
 def update_b_box_position(b_box_x, b_box_y, score, final_score_size, window_size_x):
