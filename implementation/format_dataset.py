@@ -4,7 +4,7 @@ from shutil import copyfile
 from video_utils import get_videos, get_frames
 
 path = os.path.join('..', 'original', 'data', 'validation')
-end_path = 'prova'
+end_path = 'data'
 
 os.mkdir(end_path)
 
