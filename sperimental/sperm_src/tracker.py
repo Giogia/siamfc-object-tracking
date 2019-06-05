@@ -1,11 +1,8 @@
 import tensorflow as tf
-
-import matplotlib.pyplot as plt
 import numpy as np
 import time
-
+import cv2
 import sperm_src.siamese_network as siamese_network
-from sperm_src.visualization import show_frame
 from sperm_src.parse import parameters
 
 
@@ -110,7 +107,7 @@ def tracker(frame_name_list, b_box_x, b_box_y, b_box_width, b_box_height, final_
             window_size_z = (1 - scale_lr) * window_size_z + scale_lr * scaled_window_size_z[best_scale]
 
             if parameters.run.visualization:
-                show_frame(image_, b_boxes[i, :], 1)
+                show_frame(image_, b_boxes[i, :])
 
         time_elapsed = time.time() - time_start
         speed = num_frames / time_elapsed
@@ -118,8 +115,6 @@ def tracker(frame_name_list, b_box_x, b_box_y, b_box_width, b_box_height, final_
         # Finish off the filename queue coordinator.
         coordinator.request_stop()
         coordinator.join(threads)
-
-    plt.close('all')
 
     return b_boxes, speed
 
@@ -146,3 +141,11 @@ def update_b_box_position(b_box_x, b_box_y, score, final_score_size, window_size
     b_box_y, b_box_x = b_box_y + disp_in_frame[0], b_box_x + disp_in_frame[1]
 
     return b_box_x, b_box_y
+
+
+def show_frame(image, bounding_box):
+    while True:
+        cv2.namedWindow("Image")
+        cv2.imshow("Image", image.astype(dtype=np.uint8))
+        print(bounding_box)
+        cv2.waitKey()
