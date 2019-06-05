@@ -3,8 +3,8 @@ import cv2
 from shutil import copyfile
 from video_utils import get_videos, get_frames
 
-path = '../original/data/validation'
-end_path = './data'
+path = os.path.join('..', 'original', 'data', 'validation')
+end_path = 'prova'
 
 os.mkdir(end_path)
 
