@@ -1,7 +1,6 @@
 import os
 import numpy as np
 import cv2
-from PIL import Image
 
 
 def get_videos(dataset_folder):
