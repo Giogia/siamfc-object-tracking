@@ -1,14 +1,13 @@
 import tensorflow as tf
 import numpy as np
 import time
-import cv2
 import sperm_src.siamese_network as siamese_network
 from sperm_src.parse import parameters
 
 
-def tracker(frame_list, b_box_x, b_box_y, b_box_width, b_box_height, final_score_size, image, network_z, input_scores):
-    num_frames = len(frame_list)
-    b_boxes = np.zeros((num_frames, 4))
+def tracker(queue_to_cnn, queue_to_video, finish_value, region_to_bbox, final_score_size, image, network_z, input_scores):
+
+    b_box_x, b_box_y, b_box_width, b_box_height = region_to_bbox
 
     scale_factors = parameters.hyperparameters.scale_step ** np.linspace(
         -np.ceil(parameters.hyperparameters.scale_num / 2),
@@ -25,6 +24,11 @@ def tracker(frame_list, b_box_x, b_box_y, b_box_width, b_box_height, final_score
     window_size_z = np.sqrt((b_box_width + context) * (b_box_height + context))
     window_size_x = float(parameters.design.search_sz) / parameters.design.exemplar_sz * window_size_z
 
+    while queue_to_cnn.empty():
+        time.sleep(0.5)
+
+    initial_frame = queue_to_cnn.get()
+
     init = tf.global_variables_initializer()
 
     with tf.Session() as sess:
@@ -35,16 +39,23 @@ def tracker(frame_list, b_box_x, b_box_y, b_box_width, b_box_height, final_score
         threads = tf.train.start_queue_runners(coord=coordinator)
 
         # Save first frame position (from ground-truth)
-        b_boxes[0, :] = b_box_x - b_box_width / 2, b_box_y - b_box_height / 2, b_box_width, b_box_height
+        # b_boxes = (b_box_x - b_box_width / 2, b_box_y - b_box_height / 2, b_box_width, b_box_height)[np.newaxis, :]
 
         image_, network_z_ = sess.run([image, network_z], feed_dict={
             siamese_network.bbox_x_ph: b_box_x,
             siamese_network.bbox_y_ph: b_box_y,
             siamese_network.window_size_z_ph: window_size_z,
-            siamese_network.frame: frame_list[0]})
+            siamese_network.frame: initial_frame})
 
         # Get an image from the queue
-        for i in range(1, num_frames):
+        while finish_value:
+
+            while queue_to_cnn.empty():
+                print('waiting others')
+                time.sleep(0.5)
+
+            frame = queue_to_cnn.get()
+
             scaled_window_size_z = window_size_z * scale_factors
             scaled_window_size_x = window_size_x * scale_factors
             scaled_b_box_width = b_box_width * scale_factors
@@ -58,7 +69,7 @@ def tracker(frame_list, b_box_x, b_box_y, b_box_width, b_box_height, final_score
                     siamese_network.window_size_x_1_ph: scaled_window_size_x[1],
                     siamese_network.window_size_x_2_ph: scaled_window_size_x[2],
                     network_z: np.squeeze(network_z_),
-                    siamese_network.frame: frame_list[i],
+                    siamese_network.frame: frame,
                 })
 
             scores = np.squeeze(scores)
@@ -85,8 +96,12 @@ def tracker(frame_list, b_box_x, b_box_y, b_box_width, b_box_height, final_score
             best_score = (1 - window_influence) * best_score + window_influence * penalty
             b_box_x, b_box_y = update_b_box_position(b_box_x, b_box_y, best_score, final_score_size, window_size_x)
 
+            b_box = b_box_x - b_box_width / 2, b_box_y - b_box_height / 2, b_box_width, b_box_height
+            #np.append(b_boxes, b_box, axis=0)
+            queue_to_video.put(b_box)
+
             # Convert <cx,cy,w,h> to <x,y,w,h> and save output
-            b_boxes[i, :] = b_box_x - b_box_width / 2, b_box_y - b_box_height / 2, b_box_width, b_box_height
+            # b_boxes = b_box_x - b_box_width / 2, b_box_y - b_box_height / 2, b_box_width, b_box_height
 
             # Update the target representation with a rolling average
             if parameters.hyperparameters.z_lr > 0:
@@ -103,14 +118,11 @@ def tracker(frame_list, b_box_x, b_box_y, b_box_width, b_box_height, final_score
             # Update template patch size
             window_size_z = (1 - scale_lr) * window_size_z + scale_lr * scaled_window_size_z[best_scale]
 
-            if parameters.run.visualization:
-                show_frame(image_, b_boxes[i, :])
-
         # Finish off the filename queue coordinator.
         coordinator.request_stop()
         coordinator.join(threads)
 
-    return b_boxes
+    #return b_boxes
 
 
 def update_b_box_position(b_box_x, b_box_y, score, final_score_size, window_size_x):
@@ -136,14 +148,16 @@ def update_b_box_position(b_box_x, b_box_y, score, final_score_size, window_size
 
     return b_box_x, b_box_y
 
-
-def show_frame(image, bounding_box):
+'''
+def show_frame(image, bounding_box, window):
     while True:
-        image = image.astype(dtype=np.uint8)
-        image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
+        #image = image.astype(dtype=np.uint8)
+        #image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
+    
         p1 = tuple(bounding_box[:2].astype(np.int))
         p2 = tuple((bounding_box[:2]+bounding_box[2:]).astype(np.int))
         cv2.rectangle(image, p1, p2, (0, 0, 255), 2)
-        cv2.imshow("", image)
+        cv2.imshow(window, image)
         cv2.waitKey(1)
         break
+'''

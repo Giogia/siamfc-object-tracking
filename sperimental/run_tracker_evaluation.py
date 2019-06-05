@@ -1,14 +1,17 @@
 import sys
 import os
 import numpy as np
+import cv2
+import multiprocessing as mp
 import sperm_src.siamese_network as siam
 from sperm_src.parse import parameters
 from sperm_src.bounding_box import region_to_bbox
 from sperm_src.tracker import tracker
-from sperm_src.video_utils import initialize_video
+from sperm_src.video_utils import *
 
 
 def main():
+
     evaluation, environment, hyperparameters, design = \
         parameters.evaluation, parameters.environment, parameters.hyperparameters, parameters.design
     # avoid printing TF debugging information
@@ -31,11 +34,26 @@ def main():
     for i in range(nv):
 
         video_path = os.path.join(environment.dataset_folder, videos_list[i])
-        gt, frame_list = initialize_video(video_path)
 
-        b_box_x, b_box_y, b_box_width, b_box_height = region_to_bbox(gt[0])
+        queue_to_video = mp.SimpleQueue()
+        queue_to_cnn = mp.SimpleQueue()
 
-        b_boxes = tracker(frame_list, b_box_x, b_box_y, b_box_width, b_box_height,
+        finish_value = mp.Value('i', 1)
+
+        frames = get_frames(video_path)
+
+        gt = get_groundtruth(video_path)
+        region = region_to_bbox(gt[0])
+
+        process_video = mp.Process(target=run_video, args=(queue_to_cnn, queue_to_video, finish_value, frames ))
+        process_tracker = mp.Process(target=tracker, args=(queue_to_cnn, queue_to_video, finish_value, region,
+                          final_score_sz, image, templates_z, scores))
+
+        process_video.start()
+        process_tracker.start()
+
+        '''
+        b_boxes = tracker(queue_to_cnn, queue_to_video, finish_value, region,
                           final_score_sz, image, templates_z, scores)
 
         lengths[i], precisions[i], precisions_auc[i], ious[i] = \
@@ -44,6 +62,12 @@ def main():
             print('{} -- {} -- Precision: {} -- Precisions AUC: {} -- IOU: {} --'
                   .format(i, videos_list[i], np.round(precisions[i], 2),
                           np.round(precisions_auc[i], 2), np.round(ious[i], 2)))
+        '''
+
+        process_video.join()
+        process_tracker.join()
+
+    '''
     tot_frames = np.sum(lengths)
     mean_precision = np.sum(precisions * lengths) / tot_frames
     mean_precision_auc = np.sum(precisions_auc * lengths) / tot_frames
@@ -52,6 +76,8 @@ def main():
           '-- Precisions AUC: {} -- IOU: {} --'
           .format(nv, tot_frames, evaluation.dist_threshold, np.round(mean_precision),
                   np.round(mean_precision_auc), np.round(mean_iou)))
+                  
+    '''
 
 
 def _compile_results(gt, b_boxes, dist_threshold):

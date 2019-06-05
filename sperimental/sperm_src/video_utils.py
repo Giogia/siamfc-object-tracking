@@ -50,6 +50,28 @@ def initialize_video(video_folder):
     return gt, frames_list
 
 
+def run_video(queue_to_cnn, queue_to_video, finish_value, frames):
+
+    fps = 24
+
+    queue_to_cnn.put(frames[0])
+
+    for frame in frames:
+
+        if not queue_to_video.empty():
+            queue_to_cnn.put(frame)
+            bounding_box = queue_to_video.get()
+            p1 = tuple(bounding_box[:2].astype(np.int))
+            p2 = tuple((bounding_box[:2] + bounding_box[2:]).astype(np.int))
+            cv2.rectangle(frame, p1, p2, (255, 0, 0), 2)
+
+        frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
+        cv2.imshow('Video', frame)
+        cv2.waitKey(int(1000/fps))
+        if cv2.waitKey(1) & 0xFF == ord('q'):
+            break
+
+    finish_value.value = 0
 '''
 Test
 
@@ -60,10 +82,11 @@ for video in videos:
 
     video_folder = os.path.join(path, video)
     frames = get_frames(video_folder)
-    gt = get_frames(video_folder)
-    video = initialize_video(video_folder)
-    print(len(frames))
+    window = cv2.namedWindow("Video")
+    run_video(frames, window)
+    #gt = get_frames(video_folder)
+    #video = initialize_video(video_folder)
     #print('\n\n', video)
     
-'''
 
+'''
