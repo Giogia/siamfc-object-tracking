@@ -5,6 +5,7 @@ import sperm_src.siamese_network as siam
 from sperm_src.parse import parameters
 from sperm_src.bounding_box import region_to_bbox
 from sperm_src.tracker import tracker
+from sperm_src.video_utils import initialize_video
 
 
 def main():
@@ -12,12 +13,7 @@ def main():
         parameters.evaluation, parameters.environment, parameters.hyperparameters, parameters.design
     # avoid printing TF debugging information
     os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
-    # TODO: allow parameters from command line or leave everything in json files?
-    # Set size for use with tf.image.resize_images with align_corners=True.
-    # For example,
-    #   [1 4 7] =>   [1 2 3 4 5 6 7]    (length 3*(3-1)+1)
-    # instead of
-    # [1 4 7] => [1 1 2 3 4 5 6 7 7]  (length 3*3)
+
     final_score_sz = hyperparameters.response_up * (design.score_sz - 1) + 1
     # build TF graph once for all
     filename, image, templates_z, scores = siam.build_tracking_graph()
@@ -32,12 +28,17 @@ def main():
     nv = np.size(videos_list)
     precisions, precisions_auc, ious, lengths = \
         np.zeros(nv), np.zeros(nv), np.zeros(nv), np.zeros(nv)
-    for i in range(nv):
-        gt, frame_name_list = _init_video(environment, evaluation, videos_list[i])
 
-        pos_x, pos_y, target_w, target_h = region_to_bbox(gt[0])
-        b_boxes = tracker(frame_name_list, pos_x, pos_y, target_w, target_h,
+    for i in range(nv):
+
+        video_path = os.path.join(dataset_folder, videos_list[i])
+        gt, frame_list = initialize_video(video_path)
+
+        b_box_x, b_box_y, b_box_width, b_box_height = region_to_bbox(gt[0])
+
+        b_boxes = tracker(frame_list, b_box_x, b_box_y, b_box_width, b_box_height,
                           final_score_sz, filename, image, templates_z, scores)
+
         lengths[i], precisions[i], precisions_auc[i], ious[i] = \
             _compile_results(gt, b_boxes, evaluation.dist_threshold)
         if evaluation.video == 'all':
@@ -82,17 +83,6 @@ def _compile_results(gt, b_boxes, dist_threshold):
     iou = np.mean(new_ious) * 100
 
     return length, precision, precision_auc, iou
-
-
-def _init_video(env, evaluation, video):
-    video_folder = os.path.join(env.dataset_folder, evaluation.dataset, video)
-    frame_name_list = sorted([os.path.join(video_folder, f) for f in os.listdir(video_folder) if f.endswith(".jpg")])
-
-    # read the initialization from ground truth
-    gt_file = os.path.join(video_folder, 'groundtruth.txt')
-    gt = np.genfromtxt(gt_file, delimiter=',')
-    assert len(frame_name_list) == len(gt), 'Number of frames and number of GT lines should be equal.'
-    return gt, frame_name_list
 
 
 def _compute_distance(box_a, box_b):  # x, y, w, h

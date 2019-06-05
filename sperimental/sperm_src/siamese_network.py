@@ -33,12 +33,11 @@ window_size_x_2_ph = tf.placeholder(tf.float64)
 
 
 def build_tracking_graph():
-    filename = tf.placeholder(tf.string, [], name='filename')
+
+    frame = tf.placeholder(tf.float64, name='frame')
 
     # Turn image into a Tensor
-    image = tf.read_file(filename)
-    image = tf.image.decode_jpeg(image)
-    image = 255.0 * tf.image.convert_image_dtype(image, tf.float32)
+    image = 255.0 * tf.image.convert_image_dtype(frame, tf.float32)
 
     # Pad frames if necessary
     padded_frame_z, padding_z = frame_padding(image, bbox_x_ph, bbox_y_ph, window_size_z_ph)
