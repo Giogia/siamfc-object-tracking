@@ -5,7 +5,8 @@ import numpy as np
 import time
 
 import siamese_network
-from visualization import show_frame
+import cv2
+
 from parse_arguments import parameters
 
 
@@ -146,3 +147,14 @@ def update_b_box_position(b_box_x, b_box_y, score, final_score_size, window_size
     b_box_y, b_box_x = b_box_y + disp_in_frame[0], b_box_x + disp_in_frame[1]
 
     return b_box_x, b_box_y
+
+
+def show_frame(image, bounding_box):
+    while True:
+        image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
+        p1 = tuple(bounding_box[:2].astype(np.int))
+        p2 = tuple((bounding_box[:2]+bounding_box[2:]).astype(np.int))
+        cv2.rectangle(image, p1, p2, (0, 0, 255), 2)
+        cv2.imshow("", image.astype(dtype=np.uint8))
+        cv2.waitKey(1)
+        break

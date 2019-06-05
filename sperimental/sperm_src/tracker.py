@@ -145,7 +145,10 @@ def update_b_box_position(b_box_x, b_box_y, score, final_score_size, window_size
 
 def show_frame(image, bounding_box):
     while True:
-        cv2.namedWindow("Image")
-        cv2.imshow("Image", image.astype(dtype=np.uint8))
-        print(bounding_box)
-        cv2.waitKey()
+        image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
+        p1 = tuple(bounding_box[:2].astype(np.int))
+        p2 = tuple((bounding_box[:2]+bounding_box[2:]).astype(np.int))
+        cv2.rectangle(image, p1, p2, (0, 0, 255), 2)
+        cv2.imshow("", image.astype(dtype=np.uint8))
+        cv2.waitKey(1)
+        break
