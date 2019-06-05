@@ -25,6 +25,7 @@ assert all(CONV_STRIDE) >= True, 'The number of conv layers is assumed to define
 # Network Placeholders
 bbox_x_ph = tf.placeholder(tf.float64, name="bbox_x")
 bbox_y_ph = tf.placeholder(tf.float64, name="bbox_y")
+frame = tf.placeholder(tf.float64, name='frame')
 
 window_size_z_ph = tf.placeholder(tf.float64, name="window_size")
 window_size_x_0_ph = tf.placeholder(tf.float64)
@@ -33,8 +34,6 @@ window_size_x_2_ph = tf.placeholder(tf.float64)
 
 
 def build_tracking_graph():
-
-    frame = tf.placeholder(tf.float64, name='frame')
 
     # Turn image into a Tensor
     image = 255.0 * tf.image.convert_image_dtype(frame, tf.float32)
@@ -66,9 +65,9 @@ def build_tracking_graph():
     final_score_size = parameters.hyperparameters.response_up * (parameters.design.score_sz - 1) + 1
 
     upsampled_scores = tf.image.resize_images(scores, [final_score_size, final_score_size],
-                                       method=tf.image.ResizeMethod.BICUBIC, align_corners=True)
+                                              method=tf.image.ResizeMethod.BICUBIC, align_corners=True)
 
-    return filename, image, network_z, upsampled_scores
+    return image, network_z, upsampled_scores
 
 
 def create_network(network_z, network_x):

@@ -6,8 +6,7 @@ import sperm_src.siamese_network as siamese_network
 from sperm_src.parse import parameters
 
 
-def tracker(frame_list, b_box_x, b_box_y, b_box_width, b_box_height, final_score_size, filename, image,
-            network_z, input_scores):
+def tracker(frame_list, b_box_x, b_box_y, b_box_width, b_box_height, final_score_size, image, network_z, input_scores):
     num_frames = len(frame_list)
     b_boxes = np.zeros((num_frames, 4))
 
@@ -42,7 +41,7 @@ def tracker(frame_list, b_box_x, b_box_y, b_box_width, b_box_height, final_score
             siamese_network.bbox_x_ph: b_box_x,
             siamese_network.bbox_y_ph: b_box_y,
             siamese_network.window_size_z_ph: window_size_z,
-            frame: frame_list[0]})
+            siamese_network.frame: frame_list[0]})
 
         # Get an image from the queue
         for i in range(1, num_frames):
@@ -59,7 +58,7 @@ def tracker(frame_list, b_box_x, b_box_y, b_box_width, b_box_height, final_score
                     siamese_network.window_size_x_1_ph: scaled_window_size_x[1],
                     siamese_network.window_size_x_2_ph: scaled_window_size_x[2],
                     network_z: np.squeeze(network_z_),
-                    filename: frame_name_list[i],
+                    siamese_network.frame: frame_list[i],
                 })
 
             scores = np.squeeze(scores)

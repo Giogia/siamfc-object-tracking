@@ -1,10 +1,10 @@
 import os
 import cv2
 from shutil import copyfile
-from video_utils import get_videos, get_frames
+from src.video_utils import get_videos, get_frames
 
-path = os.path.join('..', 'original', 'data', 'validation')
-end_path = 'data'
+path = os.path.join('..', '..', 'original', 'data', 'validation')
+end_path = os.path.join('..', 'data')
 
 os.mkdir(end_path)
 

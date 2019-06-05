@@ -16,12 +16,11 @@ def main():
 
     final_score_sz = hyperparameters.response_up * (design.score_sz - 1) + 1
     # build TF graph once for all
-    filename, image, templates_z, scores = siam.build_tracking_graph()
+    image, templates_z, scores = siam.build_tracking_graph()
 
     # iterate through all videos of evaluation.dataset
     if evaluation.video == 'all':
-        dataset_folder = os.path.join(environment.dataset_folder, evaluation.dataset)
-        videos_list = sorted([v for v in os.listdir(dataset_folder)])
+        videos_list = sorted([v for v in os.listdir(environment.dataset_folder)])
     else:
         videos_list = [evaluation.video]
 
@@ -31,13 +30,13 @@ def main():
 
     for i in range(nv):
 
-        video_path = os.path.join(dataset_folder, videos_list[i])
+        video_path = os.path.join(environment.dataset_folder, videos_list[i])
         gt, frame_list = initialize_video(video_path)
 
         b_box_x, b_box_y, b_box_width, b_box_height = region_to_bbox(gt[0])
 
         b_boxes = tracker(frame_list, b_box_x, b_box_y, b_box_width, b_box_height,
-                          final_score_sz, filename, image, templates_z, scores)
+                          final_score_sz, image, templates_z, scores)
 
         lengths[i], precisions[i], precisions_auc[i], ious[i] = \
             _compile_results(gt, b_boxes, evaluation.dist_threshold)
