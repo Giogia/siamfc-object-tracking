@@ -25,7 +25,7 @@ assert all(CONV_STRIDE) >= True, 'The number of conv layers is assumed to define
 # Network Placeholders
 bbox_x_ph = tf.placeholder(tf.float64, name="bbox_x")
 bbox_y_ph = tf.placeholder(tf.float64, name="bbox_y")
-frame = tf.placeholder(tf.float64, name='frame')
+frame = tf.placeholder(tf.uint8, name='frame')
 
 window_size_z_ph = tf.placeholder(tf.float64, name="window_size")
 window_size_x_0_ph = tf.placeholder(tf.float64)
@@ -36,14 +36,11 @@ window_size_x_2_ph = tf.placeholder(tf.float64)
 def build_tracking_graph():
 
     # Turn image into a Tensor
-    image = 255.0 * tf.image.convert_image_dtype(frame, tf.float32)
+    image = 255.0 * tf.image.convert_image_dtype(frame, tf.float64)
 
     # Pad frames if necessary
     padded_frame_z, padding_z = frame_padding(image, bbox_x_ph, bbox_y_ph, window_size_z_ph)
-    padded_frame_z = tf.cast(padded_frame_z, tf.float32)
-
     padded_frame_x, padding_x = frame_padding(image, bbox_x_ph, bbox_y_ph, window_size_x_2_ph)
-    padded_frame_x = tf.cast(padded_frame_x, tf.float32)
 
     # Extract tensor Z
     tensor_z = crop_resize(padded_frame_z, padding_z, bbox_x_ph, bbox_y_ph, [window_size_z_ph],

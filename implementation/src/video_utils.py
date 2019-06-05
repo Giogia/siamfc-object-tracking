@@ -4,7 +4,6 @@ import cv2
 
 
 def get_videos(dataset_folder):
-
     videos_list = [video for video in os.listdir(dataset_folder) if os.path.isdir(os.path.join(dataset_folder, video))]
     videos_list.sort()
 
@@ -20,19 +19,18 @@ def get_frame_list(video_folder):
 
 
 def get_frames(video_folder):
-
     frames_list = []
     video_capture = cv2.VideoCapture(os.path.join(video_folder, os.path.basename(video_folder) + '.mp4'))
     success, frame = video_capture.read()
     while success:
-        success, frame = video_capture.read()
+        frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         frames_list.append(frame)
+        success, frame = video_capture.read()
 
     return frames_list
 
 
 def get_groundtruth(video_folder):
-
     gt_file = os.path.join(video_folder, 'groundtruth.txt')
     gt = np.genfromtxt(gt_file, delimiter=',')
 
@@ -40,7 +38,6 @@ def get_groundtruth(video_folder):
 
 
 def initialize_video(video_folder):
-
     gt = get_groundtruth(video_folder)
     frames_list = get_frames(video_folder)
 
@@ -52,7 +49,7 @@ def initialize_video(video_folder):
 '''
 Test
 
-path = 'data'
+path = '../data'
 videos = get_videos(path)
 
 for video in videos:
@@ -61,6 +58,7 @@ for video in videos:
     frames = get_frames(video_folder)
     gt = get_frames(video_folder)
     video = initialize_video(video_folder)
-    print('\n\n', video)
-'''
+    print(len(frames))
+    #print('\n\n', video)
 
+'''

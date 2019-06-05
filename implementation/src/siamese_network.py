@@ -1,4 +1,3 @@
-import tensorflow as tf
 import os.path
 import numpy as np
 
@@ -25,6 +24,7 @@ assert all(CONV_STRIDE) >= True, 'The number of conv layers is assumed to define
 # Network Placeholders
 bbox_x_ph = tf.placeholder(tf.float64, name="bbox_x")
 bbox_y_ph = tf.placeholder(tf.float64, name="bbox_y")
+frame = tf.placeholder(tf.uint8, name='frame')
 
 window_size_z_ph = tf.placeholder(tf.float64, name="window_size")
 window_size_x_0_ph = tf.placeholder(tf.float64)
@@ -33,19 +33,13 @@ window_size_x_2_ph = tf.placeholder(tf.float64)
 
 
 def build_tracking_graph():
-    filename = tf.placeholder(tf.string, [], name='filename')
 
     # Turn image into a Tensor
-    image = tf.read_file(filename)
-    image = tf.image.decode_jpeg(image)
-    image = 255.0 * tf.image.convert_image_dtype(image, tf.float32)
+    image = 255.0 * tf.image.convert_image_dtype(frame, tf.float64)
 
     # Pad frames if necessary
     padded_frame_z, padding_z = frame_padding(image, bbox_x_ph, bbox_y_ph, window_size_z_ph)
-    padded_frame_z = tf.cast(padded_frame_z, tf.float32)
-
     padded_frame_x, padding_x = frame_padding(image, bbox_x_ph, bbox_y_ph, window_size_x_2_ph)
-    padded_frame_x = tf.cast(padded_frame_x, tf.float32)
 
     # Extract tensor Z
     tensor_z = crop_resize(padded_frame_z, padding_z, bbox_x_ph, bbox_y_ph, [window_size_z_ph],
@@ -67,9 +61,9 @@ def build_tracking_graph():
     final_score_size = parameters.hyperparameters.response_up * (parameters.design.score_sz - 1) + 1
 
     upsampled_scores = tf.image.resize_images(scores, [final_score_size, final_score_size],
-                                       method=tf.image.ResizeMethod.BICUBIC, align_corners=True)
+                                              method=tf.image.ResizeMethod.BICUBIC, align_corners=True)
 
-    return filename, image, network_z, upsampled_scores
+    return image, network_z, upsampled_scores
 
 
 def create_network(network_z, network_x):
@@ -118,19 +112,17 @@ def create_network(network_z, network_x):
         # Add max pool if required
         if POOL_STRIDE[i] > 0:
             print('\t\tMAX-POOL: size {} and stride {}'.format(POOL_SIZE, POOL_STRIDE[i]))
-            network_x = tf.nn.max_pool(network_x, [1, POOL_SIZE, POOL_SIZE, 1],
-                                       strides=[1, POOL_STRIDE[i], POOL_STRIDE[i], 1],
-                                       padding='VALID', name='pool' + str(i + 1))
-            network_z = tf.nn.max_pool(network_z, [1, POOL_SIZE, POOL_SIZE, 1],
-                                       strides=[1, POOL_STRIDE[i], POOL_STRIDE[i], 1],
-                                       padding='VALID', name='pool' + str(i + 1))
+            network_x = tf.nn.max_pool(network_x, [1, POOL_SIZE, POOL_SIZE, 1], strides=[1, POOL_STRIDE[i], POOL_STRIDE[i], 1],
+                                   padding='VALID', name='pool' + str(i + 1))
+            network_z = tf.nn.max_pool(network_z, [1, POOL_SIZE, POOL_SIZE, 1], strides=[1, POOL_STRIDE[i], POOL_STRIDE[i], 1],
+                                   padding='VALID', name='pool' + str(i + 1))
 
     return network_z, network_x
 
 
 def create_convolutional(tensor, window, bias, stride, batch_norm_beta, batch_norm_gamma, batch_norm_mm, batch_norm_mv,
                          filter_group=False, batch_norm=True, activation=True, scope="conv", reuse=False):
-    with tf.variable_scope(scope, reuse=reuse):
+    with tf.variable_scope(scope, reuse=tf.AUTO_REUSE):
 
         # sanity check
         # window = tf.get_variable("W", window.shape, trainable=False, initializer=tf.constant_initializer(window))
