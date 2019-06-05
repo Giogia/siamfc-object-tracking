@@ -51,11 +51,9 @@ videos = get_videos(path)
 
 for video in videos:
 
-    video = os.path.join(path, video)
-    frames = get_frames(video)
-    gt = get_groundtruth(video)
-
-    video = initialize_video(video)
+    video_folder = os.path.join(path, video)
+    frames = get_frames(video_folder)
+    video = initialize_video(video_folder)
     print('\n\n', video)
-
 '''
+
