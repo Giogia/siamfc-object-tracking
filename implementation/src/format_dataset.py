@@ -1,7 +1,7 @@
 import os
 import cv2
 from shutil import copyfile
-from video_utils import get_videos, get_frames
+from src.video_utils import get_videos, get_frame_list
 
 path = os.path.join('..', 'original', 'data', 'validation')
 end_path = 'data'
@@ -23,7 +23,7 @@ for video in videos:
 
     end_video_path = os.path.join(end_path, video, video + '.mp4')
 
-    frames = get_frames(video_folder)
+    frames = get_frame_list(video_folder)
     height, width, channels = cv2.imread(frames[0]).shape
     writer = cv2.VideoWriter(end_video_path, cv2.VideoWriter_fourcc(*'mp4v'), 24, (width, height))
 

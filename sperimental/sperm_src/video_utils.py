@@ -11,6 +11,14 @@ def get_videos(dataset_folder):
     return videos_list
 
 
+def get_frame_list(video_folder):
+    frames_list = [frame for frame in os.listdir(video_folder) if frame.endswith('.jpg')]
+    frames_list = [os.path.join(video_folder, s) for s in frames_list]
+    frames_list.sort()
+
+    return frames_list
+
+
 def get_frames(video_folder):
 
     frames_list = []
