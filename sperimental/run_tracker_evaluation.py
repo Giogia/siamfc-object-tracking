@@ -1,11 +1,8 @@
-import sys
-import os
-import numpy as np
-import cv2
 import multiprocessing as mp
-import sperm_src.siamese_network as siam
-from sperm_src.parse import parameters
+import sys
+
 from sperm_src.bounding_box import region_to_bbox
+from sperm_src.parse import parameters
 from sperm_src.tracker import tracker
 from sperm_src.video_utils import *
 
@@ -18,9 +15,6 @@ def main():
     os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 
     final_score_sz = hyperparameters.response_up * (design.score_sz - 1) + 1
-    # build TF graph once for all
-
-
     # iterate through all videos of evaluation.dataset
     if evaluation.video == 'all':
         videos_list = sorted([v for v in os.listdir(environment.dataset_folder)])
@@ -28,9 +22,10 @@ def main():
         videos_list = [evaluation.video]
 
     nv = np.size(videos_list)
+    """
     precisions, precisions_auc, ious, lengths = \
         np.zeros(nv), np.zeros(nv), np.zeros(nv), np.zeros(nv)
-
+    """
     for i in range(nv):
 
         video_path = os.path.join(environment.dataset_folder, videos_list[i])
