@@ -2,7 +2,6 @@ import tensorflow as tf
 
 import matplotlib.pyplot as plt
 import numpy as np
-import time
 
 import src.siamese_network as siamese_network
 import cv2
@@ -34,10 +33,6 @@ def tracker(frame_list, region_to_bbox, final_score_size, image, network_z, inpu
 
     with tf.Session() as sess:
         sess.run(init)
-
-        # Coordinate the loading of image files.
-        coordinator = tf.train.Coordinator()
-        threads = tf.train.start_queue_runners(coord=coordinator)
 
         # Save first frame position (from ground-truth)
         b_boxes[0, :] = b_box_x - b_box_width / 2, b_box_y - b_box_height / 2, b_box_width, b_box_height
@@ -92,7 +87,7 @@ def tracker(frame_list, region_to_bbox, final_score_size, image, network_z, inpu
 
             # Convert <cx,cy,w,h> to <x,y,w,h> and save output
             b_boxes[i, :] = b_box_x - b_box_width / 2, b_box_y - b_box_height / 2, b_box_width, b_box_height
-
+            # ######## Remove this part to increase speed and eventually lose from 0 to 1% in returned values ########
             # Update the target representation with a rolling average
             if parameters.hyperparameters.z_lr > 0:
                 new_network_z = sess.run([network_z], feed_dict={
@@ -107,14 +102,9 @@ def tracker(frame_list, region_to_bbox, final_score_size, image, network_z, inpu
 
             # Update template patch size
             window_size_z = (1 - scale_lr) * window_size_z + scale_lr * scaled_window_size_z[best_scale]
-
+            # ######## Remove up to here ########
             if parameters.run.visualization:
                 show_frame(image_, b_boxes[i, :])
-
-
-        # Finish off the filename queue coordinator.
-        coordinator.request_stop()
-        coordinator.join(threads)
 
     plt.close('all')
 
