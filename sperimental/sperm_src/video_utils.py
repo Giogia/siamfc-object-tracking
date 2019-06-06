@@ -2,6 +2,9 @@ import os
 import numpy as np
 import cv2
 
+RED = (0, 0, 255)
+NAME_WIND = 'Video'
+
 
 def get_videos(dataset_folder):
     videos_list = [video for video in os.listdir(dataset_folder) if os.path.isdir(os.path.join(dataset_folder, video))]
@@ -49,86 +52,78 @@ def initialize_video(video_folder):
 
 def run_video(queue_to_cnn, queue_to_video, frames):
     fps = 12
-    p1 = 0, 0
-    p2 = 0, 0
-    name_wind = 'Video'
+    p1, p2 = (0, 0), (0, 0)
+
     queue_to_cnn.put(frames[0])
     queue_to_cnn.put(frames[1])
     queue_to_cnn.join()
+
     for frame in frames[1:]:
-        draw_bbox(int(1000 / fps), name_wind, frame, p1, p2, queue_to_cnn, queue_to_video)
+        frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
+        p1, p2 = draw_bbox(int(1000 / fps), frame, queue_to_cnn, queue_to_video, p1, p2)
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
+
     queue_to_cnn.close()
 
 
-def draw_bbox(wait_time, name_wind, frame, p1, p2, queue_to_cnn, queue_to_video):
+def draw_bbox(wait_time, frame, queue_to_cnn, queue_to_video, p1, p2):
     if not queue_to_video.empty():
         queue_to_cnn.put(frame)
         bounding_box = queue_to_video.get()
         p1 = int(bounding_box[0]), int(bounding_box[1])
         p2 = int(bounding_box[0] + bounding_box[2]), int(bounding_box[1] + bounding_box[3])
-        return p1, p2
-    cv2.rectangle(frame, p1, p2, (255, 0, 0), 2)
-    frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
-    cv2.imshow(name_wind, frame)
+    cv2.rectangle(frame, p1, p2, RED, 2)
+    cv2.imshow(NAME_WIND, frame)
     cv2.waitKey(wait_time)
+    return p1, p2
 
 
 def draw_rectangle(event, x, y, flag, param):
-    global flag_rect, flag_cont, drawing, points, frame
+    global flag_rect, drawing, points, frame
     if event == cv2.EVENT_LBUTTONDOWN:
         drawing = True
         points = ((x, y), (x, y))
-        flag_cont = 1
 
     if event == cv2.EVENT_LBUTTONUP:
         points = (points[0], (x, y))
-        drawing = False
-        flag_rect = 1
-        flag_cont = 0
-
-    if event == cv2.EVENT_MOUSEMOVE and flag_cont == 1:
-        cv2.rectangle(frame, points[0], (x, y), (0, 0, 255), 2)
-        cv2.imshow('frame', frame)
+        if not points[0] == points[1]:
+            drawing = False
+            flag_rect = True
 
     if event == cv2.EVENT_MOUSEMOVE:
-        if drawing:
-            pass
-            #frame_clean = frame.copy()
+        points = (points[0], (x, y))
+
+
+def draw_selecting_box(drawing, frame, points):
+    if drawing:
+        cv2.rectangle(frame, points[0], points[1], RED, 2)
+        cv2.imshow(NAME_WIND, frame)
 
 
 def from_webcam(queue_to_cnn, queue_to_video):
-    global flag_rect, drawing, frame
-    flag_rect = 0
-    drawing = False
-    name_wind = 'Webcam'
+    global flag_rect, drawing, frame, points
+    flag_rect, drawing = False, False
+    frame = None
+    points = ((0, 0), (0, 0))
+    p1, p2 = (0, 0), (0, 0)
 
     cap = cv2.VideoCapture(0)
-    cv2.namedWindow(name_wind)
-    cv2.setMouseCallback(name_wind, draw_rectangle)
-
-    p1 = 0, 0
-    p2 = 0, 0
+    cv2.namedWindow(NAME_WIND)
+    cv2.setMouseCallback(NAME_WIND, draw_rectangle)
 
     while True:
         # Capture frame-by-frame
         ret, frame = cap.read()
 
+        if drawing:
+            cv2.rectangle(frame, points[0], points[1], RED, 2)
+
         if flag_rect:
+            generate_gt(frame, points, queue_to_cnn)
+            flag_rect = False
 
-            cv2.rectangle(frame, points[0], points[1], (0, 0, 255), 2)
-            width = points[1][0] - points[0][0]
-            height = points[1][1] - points[0][1]
-            initial_gt = (points[0][0] + width / 2, points[0][1] + height / 2, width, height)  # x_centre, y_centre,
-            # w, h
-            queue_to_cnn.put(initial_gt)
-            queue_to_cnn.put(frame)
-            queue_to_cnn.put(frame)
-            queue_to_cnn.join()
-            flag_rect = 0
-
-        draw_bbox(10, name_wind, frame, p1, p2, queue_to_cnn, queue_to_video)
+        p1, p2 = draw_bbox(10, frame, queue_to_cnn, queue_to_video, p1, p2)
 
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
@@ -137,6 +132,17 @@ def from_webcam(queue_to_cnn, queue_to_video):
     # When everything done, release the capture
     cap.release()
     cv2.destroyAllWindows()
+
+
+def generate_gt(frame, points, queue_to_cnn):
+    width = points[1][0] - points[0][0]
+    height = points[1][1] - points[0][1]
+    initial_gt = (points[0][0] + width / 2, points[0][1] + height / 2, width, height)  # x_centre, y_centre,
+    # w, h
+    queue_to_cnn.put(initial_gt)
+    queue_to_cnn.put(frame)
+    queue_to_cnn.put(frame)
+    queue_to_cnn.join()
 
 
 '''
