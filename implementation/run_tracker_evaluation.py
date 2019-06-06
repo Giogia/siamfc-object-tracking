@@ -1,10 +1,11 @@
 import sys
 import os
 import numpy as np
-import sperm_src.siamese_network as siam
+import src.siamese_network as siam
 from src.parse_arguments import parameters
 from src.bounding_box import region_to_bbox
 from src.tracker import tracker
+from src.video_utils import initialize_video
 
 
 def main():
@@ -20,12 +21,11 @@ def main():
     # [1 4 7] => [1 1 2 3 4 5 6 7 7]  (length 3*3)
     final_score_sz = hyperparameters.response_up * (design.score_sz - 1) + 1
     # build TF graph once for all
-    filename, image, templates_z, scores = siam.build_tracking_graph()
+    image, templates_z, scores = siam.build_tracking_graph()
 
     # iterate through all videos of evaluation.dataset
     if evaluation.video == 'all':
-        dataset_folder = os.path.join(environment.dataset_folder, evaluation.dataset)
-        videos_list = sorted([v for v in os.listdir(dataset_folder)])
+        videos_list = sorted([v for v in os.listdir(environment.dataset_folder)])
     else:
         videos_list = [evaluation.video]
 
@@ -33,15 +33,11 @@ def main():
     precisions, precisions_auc, ious, lengths = \
         np.zeros(nv), np.zeros(nv), np.zeros(nv), np.zeros(nv)
     for i in range(nv):
-        gt, frame_name_list = _init_video(environment, evaluation, videos_list[i])
+        video_path = os.path.join(environment.dataset_folder, videos_list[i])
+        gt, frame_list = initialize_video(video_path)
 
-        pos_x, pos_y, target_w, target_h = region_to_bbox(gt[0])
-
-
-
-
-        b_boxes = tracker(frame_name_list, pos_x, pos_y, target_w, target_h,
-                          final_score_sz, filename, image, templates_z, scores)
+        region = region_to_bbox(gt[0])
+        b_boxes = tracker(frame_list, region, final_score_sz, image, templates_z, scores)
         lengths[i], precisions[i], precisions_auc[i], ious[i] = \
             _compile_results(gt, b_boxes, evaluation.dist_threshold)
         if evaluation.video == 'all':

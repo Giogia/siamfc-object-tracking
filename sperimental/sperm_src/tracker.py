@@ -33,10 +33,6 @@ def tracker(queue_to_cnn, queue_to_video, region_to_bbox, final_score_size):
     with tf.Session() as sess:
         sess.run(init)
 
-        # Coordinate the loading of image files.
-        coordinator = tf.train.Coordinator()
-        threads = tf.train.start_queue_runners(coord=coordinator)
-
         # Save first frame position (from ground-truth)
         # b_boxes = (b_box_x - b_box_width / 2, b_box_y - b_box_height / 2, b_box_width, b_box_height)[np.newaxis, :]
 
@@ -96,10 +92,10 @@ def tracker(queue_to_cnn, queue_to_video, region_to_bbox, final_score_size):
             #np.append(b_boxes, b_box, axis=0)
             queue_to_video.put(b_box)
             queue_to_cnn.task_done()
-
+            """
             # Convert <cx,cy,w,h> to <x,y,w,h> and save output
             # b_boxes = b_box_x - b_box_width / 2, b_box_y - b_box_height / 2, b_box_width, b_box_height
-            """
+
             # Update the target representation with a rolling average
             if parameters.hyperparameters.z_lr > 0:
                 new_network_z = sess.run([network_z], feed_dict={
@@ -109,16 +105,12 @@ def tracker(queue_to_cnn, queue_to_video, region_to_bbox, final_score_size):
                     image: image_
                 })
 
-                #z_lr = parameters.hyperparameters.z_lr
-                #network_z_ = (1 - z_lr) * np.asarray(network_z_) + z_lr * np.asarray(new_network_z)
+                z_lr = parameters.hyperparameters.z_lr
+                network_z_ = (1 - z_lr) * np.asarray(network_z_) + z_lr * np.asarray(new_network_z)
 
             # Update template patch size
-            #window_size_z = (1 - scale_lr) * window_size_z + scale_lr * scaled_window_size_z[best_scale]
+            window_size_z = (1 - scale_lr) * window_size_z + scale_lr * scaled_window_size_z[best_scale]
             """
-        # Finish off the filename queue coordinator.
-        coordinator.request_stop()
-        coordinator.join(threads)
-
     #return b_boxes
 
 
