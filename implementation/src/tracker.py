@@ -1,6 +1,5 @@
 import tensorflow as tf
 
-import matplotlib.pyplot as plt
 import numpy as np
 
 import src.siamese_network as siamese_network
@@ -105,8 +104,6 @@ def tracker(frame_list, region_to_bbox, final_score_size, image, network_z, inpu
             # ######## Remove up to here ########
             if parameters.run.visualization:
                 show_frame(image_, b_boxes[i, :])
-
-    plt.close('all')
 
     return b_boxes
 
