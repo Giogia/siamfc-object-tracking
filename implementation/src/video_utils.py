@@ -1,6 +1,8 @@
 import os
+import time
 import numpy as np
 import cv2
+from src.parse_arguments import parameters
 
 
 def get_videos(dataset_folder):
@@ -45,6 +47,39 @@ def initialize_video(video_folder):
 
     return gt, frames_list
 
+
+def show_frame(image, bounding_box):
+    while True:
+        image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
+        image = draw_frame(image, bounding_box)
+        cv2.imshow("", image)
+        cv2.waitKey(1)
+        break
+
+
+def draw_frame(image, bounding_box):
+    image = image.astype(dtype=np.uint8)
+    p1 = tuple(bounding_box[:2].astype(np.int))
+    p2 = tuple((bounding_box[:2] + bounding_box[2:]).astype(np.int))
+    cv2.rectangle(image, p1, p2, (0, 0, 255), 2)
+
+    return image
+
+
+def save_video(frame_list, b_boxes):
+
+    assert len(frame_list) == len(b_boxes), 'The number of frames doesnt correspond to number of bounding boxes'
+
+    path = os.path.join(parameters.environment.results_folder, str(time.time()) + '.mp4')
+    frame_list = [cv2.cvtColor(frame, cv2.COLOR_BGR2RGB) for frame in frame_list]
+    frames = [draw_frame(frame, b_box) for frame, b_box in zip(frame_list, b_boxes)]
+    height, width, channels = frames[0].shape
+    writer = cv2.VideoWriter(path, cv2.VideoWriter_fourcc(*'mp4v'), 24, (width, height))
+
+    for frame in frames:
+        writer.write(frame)
+
+    writer.release()
 
 '''
 Test
