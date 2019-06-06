@@ -31,14 +31,18 @@ def main():
         video_path = os.path.join(environment.dataset_folder, videos_list[i])
 
         queue_to_video = mp.Queue(maxsize=1)
-        queue_to_cnn = mp.JoinableQueue(maxsize=2)
 
-        frames = get_frames(video_path)
-        gt = get_groundtruth(video_path)
-        region = region_to_bbox(gt[0])
-
-        process_tracker = mp.Process(target=tracker, args=(queue_to_cnn, queue_to_video, region, final_score_sz))
-        process_video = mp.Process(target=run_video, args=(queue_to_cnn, queue_to_video, frames))
+        if evaluation.video == 'webcam':
+            queue_to_cnn = mp.JoinableQueue(maxsize=3)
+            process_video = mp.Process(target=from_webcam, args=(queue_to_cnn, queue_to_video))
+            process_tracker = mp.Process(target=tracker, args=(queue_to_cnn, queue_to_video, final_score_sz))
+        else:
+            queue_to_cnn = mp.JoinableQueue(maxsize=2)
+            frames = get_frames(video_path)
+            gt = get_groundtruth(video_path)
+            region = region_to_bbox(gt[0])
+            process_video = mp.Process(target=run_video, args=(queue_to_cnn, queue_to_video, frames))
+            process_tracker = mp.Process(target=tracker, args=(queue_to_cnn, queue_to_video, final_score_sz, region))
 
         process_video.start()
         process_tracker.start()

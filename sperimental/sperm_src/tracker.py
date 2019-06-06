@@ -5,8 +5,15 @@ from sperm_src.parse import parameters
 from _queue import Empty
 
 
-def tracker(queue_to_cnn, queue_to_video, region_to_bbox, final_score_size):
+def tracker(queue_to_cnn, queue_to_video, final_score_size, region=None):
     image, network_z, input_scores = siamese_network.build_tracking_graph()
+
+    if parameters.evaluation.video == 'webcam':
+        region_to_bbox = queue_to_cnn.get()
+        queue_to_cnn.task_done()
+    else:
+        region_to_bbox = region
+
     b_box_x, b_box_y, b_box_width, b_box_height = region_to_bbox
 
     scale_factors = parameters.hyperparameters.scale_step ** np.linspace(

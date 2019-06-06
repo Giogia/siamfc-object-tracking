@@ -13,7 +13,12 @@ def main():
         parameters.evaluation, parameters.environment, parameters.hyperparameters, parameters.design
     # avoid printing TF debugging information
     os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
-
+    # TODO: allow parameters from command line or leave everything in json files?
+    # Set size for use with tf.image.resize_images with align_corners=True.
+    # For example,
+    #   [1 4 7] =>   [1 2 3 4 5 6 7]    (length 3*(3-1)+1)
+    # instead of
+    # [1 4 7] => [1 1 2 3 4 5 6 7 7]  (length 3*3)
     final_score_sz = hyperparameters.response_up * (design.score_sz - 1) + 1
     # build TF graph once for all
     image, templates_z, scores = siam.build_tracking_graph()
