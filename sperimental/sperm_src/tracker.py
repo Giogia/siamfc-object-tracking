@@ -2,9 +2,10 @@ import tensorflow as tf
 import numpy as np
 import sperm_src.siamese_network as siamese_network
 from sperm_src.parse import parameters
+from _queue import Empty
 
 
-def tracker(queue_to_cnn, queue_to_video, finish_value, region_to_bbox, final_score_size):
+def tracker(queue_to_cnn, queue_to_video, region_to_bbox, final_score_size):
     image, network_z, input_scores = siamese_network.build_tracking_graph()
     b_box_x, b_box_y, b_box_width, b_box_height = region_to_bbox
 
@@ -27,6 +28,8 @@ def tracker(queue_to_cnn, queue_to_video, finish_value, region_to_bbox, final_sc
 
     init = tf.global_variables_initializer()
 
+    queue_to_cnn.task_done()
+
     with tf.Session() as sess:
         sess.run(init)
 
@@ -44,11 +47,12 @@ def tracker(queue_to_cnn, queue_to_video, finish_value, region_to_bbox, final_sc
             siamese_network.frame: initial_frame})
 
         # Get an image from the queue
-        while finish_value:
-
-            frame = queue_to_cnn.get()
-
-            scaled_window_size_z = window_size_z * scale_factors
+        while True:
+            try:
+                frame = queue_to_cnn.get(timeout=0.5)
+            except Empty:
+                break
+            #scaled_window_size_z = window_size_z * scale_factors
             scaled_window_size_x = window_size_x * scale_factors
             scaled_b_box_width = b_box_width * scale_factors
             scaled_b_box_height = b_box_height * scale_factors
@@ -91,10 +95,11 @@ def tracker(queue_to_cnn, queue_to_video, finish_value, region_to_bbox, final_sc
             b_box = b_box_x - b_box_width / 2, b_box_y - b_box_height / 2, b_box_width, b_box_height
             #np.append(b_boxes, b_box, axis=0)
             queue_to_video.put(b_box)
+            queue_to_cnn.task_done()
 
             # Convert <cx,cy,w,h> to <x,y,w,h> and save output
             # b_boxes = b_box_x - b_box_width / 2, b_box_y - b_box_height / 2, b_box_width, b_box_height
-
+            """
             # Update the target representation with a rolling average
             if parameters.hyperparameters.z_lr > 0:
                 new_network_z = sess.run([network_z], feed_dict={
@@ -104,12 +109,12 @@ def tracker(queue_to_cnn, queue_to_video, finish_value, region_to_bbox, final_sc
                     image: image_
                 })
 
-                z_lr = parameters.hyperparameters.z_lr
-                network_z_ = (1 - z_lr) * np.asarray(network_z_) + z_lr * np.asarray(new_network_z)
+                #z_lr = parameters.hyperparameters.z_lr
+                #network_z_ = (1 - z_lr) * np.asarray(network_z_) + z_lr * np.asarray(new_network_z)
 
             # Update template patch size
-            window_size_z = (1 - scale_lr) * window_size_z + scale_lr * scaled_window_size_z[best_scale]
-
+            #window_size_z = (1 - scale_lr) * window_size_z + scale_lr * scaled_window_size_z[best_scale]
+            """
         # Finish off the filename queue coordinator.
         coordinator.request_stop()
         coordinator.join(threads)

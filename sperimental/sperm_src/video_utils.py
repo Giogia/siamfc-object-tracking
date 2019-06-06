@@ -50,15 +50,16 @@ def initialize_video(video_folder):
     return gt, frames_list
 
 
-def run_video(queue_to_cnn, queue_to_video, finish_value, frames):
+def run_video(queue_to_cnn, queue_to_video, frames):
 
     fps = 12
-    p1 = 0,0
-    p2 = 0,0
+    p1 = 0, 0
+    p2 = 0, 0
 
     queue_to_cnn.put(frames[0])
     queue_to_cnn.put(frames[1])
-    for frame in frames:
+    queue_to_cnn.join()
+    for frame in frames[1:]:
 
         if not queue_to_video.empty():
             queue_to_cnn.put(frame)
@@ -73,7 +74,6 @@ def run_video(queue_to_cnn, queue_to_video, finish_value, frames):
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
 
-    finish_value.value = 0
     queue_to_cnn.close()
 '''
 Test

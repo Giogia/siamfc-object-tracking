@@ -36,17 +36,14 @@ def main():
         video_path = os.path.join(environment.dataset_folder, videos_list[i])
 
         queue_to_video = mp.Queue(maxsize=1)
-        queue_to_cnn = mp.Queue(maxsize=2)
-
-        finish_value = mp.Value('i', 1)
+        queue_to_cnn = mp.JoinableQueue(maxsize=2)
 
         frames = get_frames(video_path)
-
         gt = get_groundtruth(video_path)
         region = region_to_bbox(gt[0])
-        process_tracker = mp.Process(target=tracker, args=(queue_to_cnn, queue_to_video, finish_value, region,
-                                                           final_score_sz))
-        process_video = mp.Process(target=run_video, args=(queue_to_cnn, queue_to_video, finish_value, frames))
+
+        process_tracker = mp.Process(target=tracker, args=(queue_to_cnn, queue_to_video, region, final_score_sz))
+        process_video = mp.Process(target=run_video, args=(queue_to_cnn, queue_to_video, frames))
 
         process_video.start()
         process_tracker.start()
@@ -64,9 +61,7 @@ def main():
         '''
 
         process_video.join()
-        print('finished video')
         process_tracker.join()
-        print('finished tracking')
 
     '''
     tot_frames = np.sum(lengths)
