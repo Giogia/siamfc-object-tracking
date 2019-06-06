@@ -96,7 +96,7 @@ def draw_rectangle(event, x, y, flag, param):
 
 def from_webcam(queue_to_cnn, queue_to_video):
     global flag_rect
-    cap = cv2.VideoCapture(1)
+    cap = cv2.VideoCapture(0)
     cv2.namedWindow('frame')
     cv2.setMouseCallback('frame', draw_rectangle)
 
