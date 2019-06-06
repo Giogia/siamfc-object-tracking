@@ -73,8 +73,43 @@ def run_video(queue_to_cnn, queue_to_video, frames):
         cv2.waitKey(int(1000/fps))
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
-
     queue_to_cnn.close()
+
+
+p1_rect = [(0, 0)]
+p2_rect = [(0, 0)]
+flag_rect = 0
+
+
+def draw_rectangle(event, x, y, flag, param):
+    global flag_rect, p1_rect, p2_rect
+    if event == cv2.EVENT_LBUTTONDOWN:
+        p1_rect[0] = (x, y)
+
+    if event == cv2.EVENT_LBUTTONUP:
+        p2_rect[0] = (x, y)
+        flag_rect = 1
+
+
+def from_webcam():
+    cap = cv2.VideoCapture(1)
+    cv2.namedWindow('frame')
+    cv2.setMouseCallback('frame', draw_rectangle)
+
+    while True:
+        # Capture frame-by-frame
+        ret, frame = cap.read()
+        if flag_rect:
+            cv2.rectangle(frame, p1_rect[0], p2_rect[0], (0, 0, 255), 2)
+        # Display the resulting frame
+        cv2.imshow('frame', frame)
+        if cv2.waitKey(1) & 0xFF == ord('q'):
+            break
+
+    # When everything done, release the capture
+    cap.release()
+    cv2.destroyAllWindows()
+
 '''
 Test
 

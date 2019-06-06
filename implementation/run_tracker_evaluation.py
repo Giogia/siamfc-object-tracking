@@ -36,6 +36,10 @@ def main():
         gt, frame_name_list = _init_video(environment, evaluation, videos_list[i])
 
         pos_x, pos_y, target_w, target_h = region_to_bbox(gt[0])
+
+
+
+
         b_boxes = tracker(frame_name_list, pos_x, pos_y, target_w, target_h,
                           final_score_sz, filename, image, templates_z, scores)
         lengths[i], precisions[i], precisions_auc[i], ious[i] = \

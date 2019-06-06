@@ -44,6 +44,7 @@ def main():
 
         process_tracker = mp.Process(target=tracker, args=(queue_to_cnn, queue_to_video, region, final_score_sz))
         process_video = mp.Process(target=run_video, args=(queue_to_cnn, queue_to_video, frames))
+        #process_video = mp.Process(target=from_webcam(), args=(queue_to_cnn, queue_to_video, frames))
 
         process_video.start()
         process_tracker.start()
