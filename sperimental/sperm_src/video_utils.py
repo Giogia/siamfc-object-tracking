@@ -92,7 +92,6 @@ def draw_rectangle(event, x, y, flag, param):
     if event == cv2.EVENT_MOUSEMOVE and flag_cont == 1:
         cv2.rectangle(frame, p1_rect[0], (x, y), (0, 0, 255), 2)
         cv2.imshow('frame', frame)
-        flag_no_sfliker = 1
 
 
 def from_webcam(queue_to_cnn, queue_to_video):
