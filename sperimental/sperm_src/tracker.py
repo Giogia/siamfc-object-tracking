@@ -12,7 +12,9 @@ def tracker(queue_to_cnn, queue_to_video, final_score_size, region=None):
         region_to_bbox = queue_to_cnn.get()
         queue_to_cnn.task_done()
     else:
-        b_box_x, b_box_y, b_box_width, b_box_height = region
+        region_to_bbox = region
+
+    b_box_x, b_box_y, b_box_width, b_box_height = region_to_bbox
 
     scale_factors = parameters.hyperparameters.scale_step ** np.linspace(
         -np.ceil(parameters.hyperparameters.scale_num / 2),
