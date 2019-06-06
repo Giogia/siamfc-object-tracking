@@ -52,19 +52,21 @@ def initialize_video(video_folder):
 
 def run_video(queue_to_cnn, queue_to_video, finish_value, frames):
 
-    fps = 24
+    fps = 12
+    p1 = 0,0
+    p2 = 0,0
 
     queue_to_cnn.put(frames[0])
-
+    queue_to_cnn.put(frames[1])
     for frame in frames:
 
         if not queue_to_video.empty():
             queue_to_cnn.put(frame)
             bounding_box = queue_to_video.get()
-            p1 = tuple(bounding_box[:2].astype(np.int))
-            p2 = tuple((bounding_box[:2] + bounding_box[2:]).astype(np.int))
-            cv2.rectangle(frame, p1, p2, (255, 0, 0), 2)
+            p1 = int(bounding_box[0]), int(bounding_box[1])
+            p2 = int(bounding_box[0]+bounding_box[2]), int(bounding_box[1]+bounding_box[3])
 
+        cv2.rectangle(frame, p1, p2, (255, 0, 0), 2)
         frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
         cv2.imshow('Video', frame)
         cv2.waitKey(int(1000/fps))
@@ -72,6 +74,7 @@ def run_video(queue_to_cnn, queue_to_video, finish_value, frames):
             break
 
     finish_value.value = 0
+    queue_to_cnn.close()
 '''
 Test
 

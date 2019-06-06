@@ -19,7 +19,7 @@ def main():
 
     final_score_sz = hyperparameters.response_up * (design.score_sz - 1) + 1
     # build TF graph once for all
-    image, templates_z, scores = siam.build_tracking_graph()
+
 
     # iterate through all videos of evaluation.dataset
     if evaluation.video == 'all':
@@ -35,8 +35,8 @@ def main():
 
         video_path = os.path.join(environment.dataset_folder, videos_list[i])
 
-        queue_to_video = mp.SimpleQueue()
-        queue_to_cnn = mp.SimpleQueue()
+        queue_to_video = mp.Queue(maxsize=1)
+        queue_to_cnn = mp.Queue(maxsize=2)
 
         finish_value = mp.Value('i', 1)
 
@@ -44,10 +44,9 @@ def main():
 
         gt = get_groundtruth(video_path)
         region = region_to_bbox(gt[0])
-
-        process_video = mp.Process(target=run_video, args=(queue_to_cnn, queue_to_video, finish_value, frames ))
         process_tracker = mp.Process(target=tracker, args=(queue_to_cnn, queue_to_video, finish_value, region,
-                          final_score_sz, image, templates_z, scores))
+                                                           final_score_sz))
+        process_video = mp.Process(target=run_video, args=(queue_to_cnn, queue_to_video, finish_value, frames))
 
         process_video.start()
         process_tracker.start()
@@ -65,7 +64,9 @@ def main():
         '''
 
         process_video.join()
+        print('finished video')
         process_tracker.join()
+        print('finished tracking')
 
     '''
     tot_frames = np.sum(lengths)

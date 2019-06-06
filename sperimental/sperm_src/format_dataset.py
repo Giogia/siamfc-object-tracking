@@ -6,7 +6,7 @@ from sperm_src.video_utils import get_videos, get_frame_list
 path = os.path.join('..', '..', 'original', 'data', 'validation')
 end_path = os.path.join('..', 'data')
 
-os.mkdir(end_path)
+#os.mkdir(end_path)
 
 videos = get_videos(path)
 

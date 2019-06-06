@@ -1,12 +1,11 @@
 import tensorflow as tf
 import numpy as np
-import time
 import sperm_src.siamese_network as siamese_network
 from sperm_src.parse import parameters
 
 
-def tracker(queue_to_cnn, queue_to_video, finish_value, region_to_bbox, final_score_size, image, network_z, input_scores):
-
+def tracker(queue_to_cnn, queue_to_video, finish_value, region_to_bbox, final_score_size):
+    image, network_z, input_scores = siamese_network.build_tracking_graph()
     b_box_x, b_box_y, b_box_width, b_box_height = region_to_bbox
 
     scale_factors = parameters.hyperparameters.scale_step ** np.linspace(
@@ -23,9 +22,6 @@ def tracker(queue_to_cnn, queue_to_video, finish_value, region_to_bbox, final_sc
     context = parameters.design.context * (b_box_width + b_box_height)
     window_size_z = np.sqrt((b_box_width + context) * (b_box_height + context))
     window_size_x = float(parameters.design.search_sz) / parameters.design.exemplar_sz * window_size_z
-
-    while queue_to_cnn.empty():
-        time.sleep(0.5)
 
     initial_frame = queue_to_cnn.get()
 
@@ -49,10 +45,6 @@ def tracker(queue_to_cnn, queue_to_video, finish_value, region_to_bbox, final_sc
 
         # Get an image from the queue
         while finish_value:
-
-            while queue_to_cnn.empty():
-                print('waiting others')
-                time.sleep(0.5)
 
             frame = queue_to_cnn.get()
 
