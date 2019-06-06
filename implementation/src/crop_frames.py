@@ -1,5 +1,6 @@
-from src.parse_arguments import parameters
 import tensorflow as tf
+
+from src.parse_arguments import parameters
 
 
 # Pad image (with black or image mean) with a variable amount of pixels

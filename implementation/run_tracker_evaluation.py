@@ -1,9 +1,11 @@
-import sys
 import os
+import sys
+
 import numpy as np
+
 import src.siamese_network as siam
-from src.parse_arguments import parameters
 from src.bounding_box import region_to_bbox
+from src.parse_arguments import parameters
 from src.tracker import tracker
 from src.video_utils import initialize_video, get_videos
 

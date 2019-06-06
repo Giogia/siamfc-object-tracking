@@ -1,9 +1,7 @@
+import numpy as np
 import tensorflow as tf
 
-import numpy as np
-
 import src.siamese_network as siamese_network
-
 from src.parse_arguments import parameters
 from src.video_utils import show_frame, save_video
 

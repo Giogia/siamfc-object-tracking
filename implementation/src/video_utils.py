@@ -1,7 +1,9 @@
 import os
 import time
-import numpy as np
+
 import cv2
+import numpy as np
+
 from src.parse_arguments import parameters
 
 

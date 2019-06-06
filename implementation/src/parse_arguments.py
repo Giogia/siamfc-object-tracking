@@ -1,5 +1,6 @@
-from localconfig import config
 from collections import namedtuple
+
+from localconfig import config
 
 PATH = 'parameters.ini'
 
