@@ -53,6 +53,7 @@ def tracker(queue_to_cnn, queue_to_video, final_score_size, region=None):
         while True:
             try:
                 frame = queue_to_cnn.get(timeout=0.5)
+                queue_to_cnn.task_done()
             except Empty:
                 break
             #scaled_window_size_z = window_size_z * scale_factors
@@ -98,7 +99,7 @@ def tracker(queue_to_cnn, queue_to_video, final_score_size, region=None):
             b_box = b_box_x - b_box_width / 2, b_box_y - b_box_height / 2, b_box_width, b_box_height
             #np.append(b_boxes, b_box, axis=0)
             queue_to_video.put(b_box)
-            queue_to_cnn.task_done()
+
             """
             # Convert <cx,cy,w,h> to <x,y,w,h> and save output
             # b_boxes = b_box_x - b_box_width / 2, b_box_y - b_box_height / 2, b_box_width, b_box_height
