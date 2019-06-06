@@ -74,16 +74,25 @@ def run_video(queue_to_cnn, queue_to_video, frames):
 p1_rect = [(0, 0)]
 p2_rect = [(0, 0)]
 flag_rect = 0
+frame = 0
+flag_cont = 0
 
 
 def draw_rectangle(event, x, y, flag, param):
-    global flag_rect, p1_rect, p2_rect
+    global flag_rect, p1_rect, p2_rect, frame, flag_cont
     if event == cv2.EVENT_LBUTTONDOWN:
         p1_rect[0] = (x, y)
+        flag_cont = 1
 
     if event == cv2.EVENT_LBUTTONUP:
         p2_rect[0] = (x, y)
         flag_rect = 1
+        flag_cont = 0
+
+    if event == cv2.EVENT_MOUSEMOVE and flag_cont == 1:
+        cv2.rectangle(frame, p1_rect[0], (x, y), (0, 0, 255), 2)
+        cv2.imshow('frame', frame)
+        flag_no_sfliker = 1
 
 
 def from_webcam(queue_to_cnn, queue_to_video):
@@ -97,6 +106,7 @@ def from_webcam(queue_to_cnn, queue_to_video):
 
     while True:
         # Capture frame-by-frame
+        global frame
         ret, frame = cap.read()
         if flag_rect:
             cv2.rectangle(frame, p1_rect[0], p2_rect[0], (0, 0, 255), 2)
