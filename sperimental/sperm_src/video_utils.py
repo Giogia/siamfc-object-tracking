@@ -76,15 +76,21 @@ def draw_bbox(wait_time, name_wind, frame, p1, p2, queue_to_cnn, queue_to_video)
 
 
 def draw_rectangle(event, x, y, flag, param):
-    global flag_rect, drawing, points
+    global flag_rect, flag_cont, drawing, points, frame
     if event == cv2.EVENT_LBUTTONDOWN:
         drawing = True
         points = ((x, y), (x, y))
+        flag_cont = 1
 
     if event == cv2.EVENT_LBUTTONUP:
         points = (points[0], (x, y))
         drawing = False
         flag_rect = 1
+        flag_cont = 0
+
+    if event == cv2.EVENT_MOUSEMOVE and flag_cont == 1:
+        cv2.rectangle(frame, points[0], (x, y), (0, 0, 255), 2)
+        cv2.imshow('frame', frame)
 
     if event == cv2.EVENT_MOUSEMOVE:
         if drawing:
@@ -93,7 +99,7 @@ def draw_rectangle(event, x, y, flag, param):
 
 
 def from_webcam(queue_to_cnn, queue_to_video):
-    global flag_rect, drawing
+    global flag_rect, drawing, frame
     flag_rect = 0
     drawing = False
     name_wind = 'Webcam'
