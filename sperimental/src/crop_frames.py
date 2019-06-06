@@ -1,4 +1,4 @@
-from sperm_src.parse import parameters
+from src.parse import parameters
 import tensorflow as tf
 
 

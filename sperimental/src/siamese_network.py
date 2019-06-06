@@ -2,7 +2,7 @@ import tensorflow as tf
 import os.path
 import numpy as np
 
-from sperm_src.crop_frames import *
+from src.crop_frames import *
 
 MODEL_PATH = os.path.join(parameters.environment.model_folder, parameters.environment.model_name)
 

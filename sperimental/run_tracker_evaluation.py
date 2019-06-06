@@ -1,10 +1,10 @@
 import multiprocessing as mp
 import sys
 
-from sperm_src.bounding_box import region_to_bbox
-from sperm_src.parse import parameters
-from sperm_src.tracker import tracker
-from sperm_src.video_utils import *
+from src.bounding_box import region_to_bbox
+from src.parse import parameters
+from src.tracker import tracker
+from src.video_utils import *
 
 
 def main():

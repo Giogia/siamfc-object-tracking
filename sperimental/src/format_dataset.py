@@ -1,7 +1,7 @@
 import os
 import cv2
 from shutil import copyfile
-from sperm_src.video_utils import get_videos, get_frame_list
+from src.video_utils import get_videos, get_frame_list
 
 path = os.path.join('..', '..', 'original', 'data', 'validation')
 end_path = os.path.join('..', 'data')
