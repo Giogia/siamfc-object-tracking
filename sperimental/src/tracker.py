@@ -1,7 +1,7 @@
 import tensorflow as tf
 import numpy as np
-import sperm_src.siamese_network as siamese_network
-from sperm_src.parse import parameters
+import src.siamese_network as siamese_network
+from src.parse import parameters
 from _queue import Empty
 
 

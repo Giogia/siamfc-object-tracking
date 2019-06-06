@@ -2,9 +2,10 @@ import os
 import cv2
 from shutil import copyfile
 from src.video_utils import get_videos, get_frame_list
+from src.parse_arguments import parameters
 
 path = os.path.join('..', '..', 'original', 'data', 'validation')
-end_path = 'data'
+end_path = parameters.environment.dataset_folder
 
 #os.mkdir(end_path)
 

@@ -5,7 +5,7 @@ import src.siamese_network as siam
 from src.parse_arguments import parameters
 from src.bounding_box import region_to_bbox
 from src.tracker import tracker
-from src.video_utils import initialize_video
+from src.video_utils import initialize_video, get_videos
 
 
 def main():
@@ -25,7 +25,7 @@ def main():
 
     # iterate through all videos of evaluation.dataset
     if evaluation.video == 'all':
-        videos_list = sorted([v for v in os.listdir(environment.dataset_folder)])
+        videos_list = get_videos(environment.dataset_folder)
     else:
         videos_list = [evaluation.video]
 
